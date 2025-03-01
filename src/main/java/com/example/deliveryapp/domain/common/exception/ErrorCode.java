@@ -15,6 +15,9 @@ public enum ErrorCode {
     // USER
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "사용자를 찾을 수 없습니다"),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "USER002", "중복된 이메일입니다"),
+    EMAIL_ALREADY_DELETED(HttpStatus.CONFLICT, "USER003", "이미 탈퇴한 이메일입니다"),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST,"USER004","유효하지 않은 UserRole"),
+    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED,"USER005","유효하지 않은 토큰 값입니다"),
 
     // STORE
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORE001", "가게를 찾을 수 없습니다"),
