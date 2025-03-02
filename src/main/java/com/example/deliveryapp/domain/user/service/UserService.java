@@ -9,6 +9,7 @@ import com.example.deliveryapp.domain.user.dto.request.SignInRequest;
 import com.example.deliveryapp.domain.user.dto.request.SignUpRequest;
 import com.example.deliveryapp.domain.user.dto.response.SignInResponse;
 import com.example.deliveryapp.domain.user.dto.response.SignUpResponse;
+import com.example.deliveryapp.domain.user.dto.response.UserResponse;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
@@ -61,5 +62,12 @@ public class UserService {
         String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getName(), user.getRole());
 
         return new SignInResponse(bearerToken);
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getUser(long userId) {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        return new UserResponse(user);
     }
 }

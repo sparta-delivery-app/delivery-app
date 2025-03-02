@@ -4,12 +4,12 @@ import com.example.deliveryapp.domain.user.dto.request.SignInRequest;
 import com.example.deliveryapp.domain.user.dto.request.SignUpRequest;
 import com.example.deliveryapp.domain.user.dto.response.SignInResponse;
 import com.example.deliveryapp.domain.user.dto.response.SignUpResponse;
+import com.example.deliveryapp.domain.user.dto.response.UserResponse;
 import com.example.deliveryapp.domain.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,6 +25,11 @@ public class UserController {
     @PostMapping("/users/signin")
     public SignInResponse signIn(@Valid @RequestBody SignInRequest signInRequest) {
         return userService.signIn(signInRequest);
+    }
+    
+    @GetMapping("users/{id}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable long id) {
+        return ResponseEntity.ok(userService.getUser(id));
     }
 
 
