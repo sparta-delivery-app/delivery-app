@@ -4,6 +4,7 @@ import com.example.deliveryapp.config.JwtUtil;
 import com.example.deliveryapp.config.PasswordEncoder;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.user.dto.request.SignUpRequest;
+import com.example.deliveryapp.domain.user.dto.response.SignUpResponse;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
@@ -15,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -65,7 +65,7 @@ public class UserServiceTest {
 
             long userId = 1L;
 
-            SignUpRequest signUpRequest = new SignUpRequest("em@em.com","pw","name","OWNER");
+            SignUpRequest signUpRequest = new SignUpRequest("email@email.com","password","name","OWNER");
 
             given(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
             given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(false);
@@ -80,11 +80,13 @@ public class UserServiceTest {
             ReflectionTestUtils.setField(user,"id",userId);
 
             given(userRepository.save(any(User.class))).willReturn(user);
+            given(jwtUtil.createToken(anyLong(), anyString(), anyString(), any(UserRole.class))).willReturn("BearerToken");
 
-            userService.signUp(signUpRequest);
+            SignUpResponse signUpResponse = userService.signUp(signUpRequest);
 
-            assertThat(user.getId()).isEqualTo(userId);
-            verify(userRepository,times(1)).save(any(User.class));
+            assertNotNull(signUpResponse);
+            assertEquals("BearerToken", signUpResponse.getBearerToken());
+            verify(userRepository, times(1)).save(any(User.class));
         }
     }
 }

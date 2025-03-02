@@ -5,7 +5,10 @@ import com.example.deliveryapp.config.JwtUtil;
 import com.example.deliveryapp.config.PasswordEncoder;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
+import com.example.deliveryapp.domain.user.dto.request.SignInRequest;
 import com.example.deliveryapp.domain.user.dto.request.SignUpRequest;
+import com.example.deliveryapp.domain.user.dto.response.SignInResponse;
+import com.example.deliveryapp.domain.user.dto.response.SignUpResponse;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
@@ -22,7 +25,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public void signUp(SignUpRequest signUpRequest) {
+    public SignUpResponse signUp(SignUpRequest signUpRequest) {
         if (userRepository.existsByEmailAndDeletedAtIsNull(signUpRequest.getEmail())) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
@@ -39,6 +42,10 @@ public class UserService {
                 userRole
         );
 
-        userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
+
+        String bearerToken = jwtUtil.createToken(savedUser.getId(), savedUser.getEmail(), savedUser.getName(), userRole);
+
+        return new SignUpResponse(bearerToken);
     }
 }
