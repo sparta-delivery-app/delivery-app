@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -53,7 +54,7 @@ public class UserServiceTest {
 
             SignUpRequest signUpRequest = new SignUpRequest("email@email.com","password","name","OWNER");
 
-            given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(false);
+            given(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
             given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(true);
 
             assertThrows(CustomException.class,()->userService.signUp(signUpRequest),"이미 탈퇴한 이메일입니다");
@@ -64,9 +65,9 @@ public class UserServiceTest {
 
             long userId = 1L;
 
-            SignUpRequest signUpRequest = new SignUpRequest("email@email.com","password","name","OWNER");
+            SignUpRequest signUpRequest = new SignUpRequest("em@em.com","pw","name","OWNER");
 
-            given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(false);
+            given(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
             given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(false);
             given(passwordEncoder.encode(signUpRequest.getPassword())).willReturn("encodedPassword");
 
@@ -79,12 +80,10 @@ public class UserServiceTest {
             ReflectionTestUtils.setField(user,"id",userId);
 
             given(userRepository.save(any(User.class))).willReturn(user);
-            given(jwtUtil.createToken(anyLong(), anyString(), anyString(), any(UserRole.class))).willReturn("BearerToken");
 
-            String token = userService.signUp(signUpRequest);
+            userService.signUp(signUpRequest);
 
-            assertNotNull(token);
-            assertEquals("BearerToken",token);
+            assertThat(user.getId()).isEqualTo(userId);
             verify(userRepository,times(1)).save(any(User.class));
         }
     }

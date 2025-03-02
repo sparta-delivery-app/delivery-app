@@ -22,7 +22,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public String signUp(SignUpRequest signUpRequest) {
+    public void signUp(SignUpRequest signUpRequest) {
         if (userRepository.existsByEmailAndDeletedAtIsNull(signUpRequest.getEmail())) {
             throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
@@ -39,8 +39,6 @@ public class UserService {
                 userRole
         );
 
-        User savedUser = userRepository.save(newUser);
-
-        return jwtUtil.createToken(savedUser.getId(), savedUser.getEmail(), savedUser.getName(), userRole);
+        userRepository.save(newUser);
     }
 }
