@@ -48,4 +48,18 @@ public class UserService {
 
         return new SignUpResponse(bearerToken);
     }
+
+    @Transactional
+    public SignInResponse signIn(SignInRequest signInRequest) {
+        User user = userRepository.findByEmail(signInRequest.getEmail()).orElseThrow(
+                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(signInRequest.getPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        String bearerToken = jwtUtil.createToken(user.getId(), user.getEmail(), user.getName(), user.getRole());
+
+        return new SignInResponse(bearerToken);
+    }
 }

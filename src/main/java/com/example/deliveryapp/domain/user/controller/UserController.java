@@ -18,8 +18,14 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/users/signup")
-    public SignUpResponse signup(@Valid @RequestBody SignUpRequest signUpRequest) {
+    public SignUpResponse signUp(@Valid @RequestBody SignUpRequest signUpRequest) {
         return userService.signUp(signUpRequest);
     }
+
+    @PostMapping("/users/signin")
+    public SignInResponse signIn(@Valid @RequestBody SignInRequest signInRequest) {
+        return userService.signIn(signInRequest);
+    }
+
 
 }
