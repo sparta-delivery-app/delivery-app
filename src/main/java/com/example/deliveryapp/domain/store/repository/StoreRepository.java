@@ -37,5 +37,5 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     @Modifying
     @Transactional
     @Query("UPDATE Store s SET s.isDeleted = true WHERE s.user.id = :id")
-    int softdeleteById(Long id);
+    int softdeleteByUserId(Long id);
 }
