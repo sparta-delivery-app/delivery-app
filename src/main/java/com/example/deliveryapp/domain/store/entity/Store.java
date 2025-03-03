@@ -41,6 +41,9 @@ public class Store extends Timestamped {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted;
+
     @Builder
     public Store(String name, LocalTime openTime, LocalTime closeTime, Long minimumOrderPrice, StoreStatus status, User user) {
         this.name = name;
