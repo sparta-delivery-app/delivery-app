@@ -7,6 +7,7 @@ import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.user.dto.request.SignInRequest;
 import com.example.deliveryapp.domain.user.dto.request.SignUpRequest;
+import com.example.deliveryapp.domain.user.dto.request.UserDeleteRequest;
 import com.example.deliveryapp.domain.user.dto.response.SignInResponse;
 import com.example.deliveryapp.domain.user.dto.response.SignUpResponse;
 import com.example.deliveryapp.domain.user.dto.response.UserResponse;
@@ -16,6 +17,8 @@ import com.example.deliveryapp.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -69,5 +72,18 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(
                 () -> new CustomException(ErrorCode.USER_NOT_FOUND));
         return new UserResponse(user);
+    }
+
+    @Transactional
+    public void deleteUser(Long id, UserDeleteRequest userDeleteRequest) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        if(!passwordEncoder.matches(userDeleteRequest.getPassword(), user.getPassword())) {
+            throw new CustomException(ErrorCode.INVALID_PASSWORD);
+        }
+
+        user.setDeletedAt(LocalDateTime.now());
+        userRepository.save(user);
     }
 }
