@@ -29,8 +29,9 @@ public class OrderMenu {
     private Long price;
 
     @Builder
-    public OrderMenu(Order order, String name, Long price) {
+    public OrderMenu(Order order, Long menuId, String name, Long price) {
         this.order = order;
+        this.menuId = menuId;
         this.name = name;
         this.price = price;
     }
