@@ -69,15 +69,13 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse getUser(long userId) {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = getUserById(userId);
         return new UserResponse(user);
     }
 
     @Transactional
     public void deleteUser(Long id, UserDeleteRequest userDeleteRequest) {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User user = getUserById(id);
 
         if(!passwordEncoder.matches(userDeleteRequest.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
@@ -85,5 +83,10 @@ public class UserService {
 
         user.setDeletedAt(LocalDateTime.now());
         userRepository.save(user);
+    }
+
+    private User getUserById(long userId) {
+        return userRepository.findById(userId).orElseThrow(
+                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }
