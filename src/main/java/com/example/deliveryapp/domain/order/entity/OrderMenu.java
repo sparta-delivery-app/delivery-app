@@ -20,6 +20,9 @@ public class OrderMenu {
     private Order order;
 
     @Column(nullable = false)
+    private Long menuId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false)
