@@ -37,11 +37,11 @@ public class MenuOwnerService {
     }
 
     public MenuResponse updateMenu(Long userId, Long storeId, Long menuId, MenuUpdateRequest request) {
-        Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
-        validateStoreOwner(store.getUser().getId(), userId);
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
+        validateStoreOwner(storeOwnerId, userId);
 
         Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
-        validateMenuBelongsToStore(menu.getStore(), store);
+        validateMenuBelongsToStore(menu.getStore().getId(), storeId);
 
         menu.update(request.getMenuName(), request.getPrice());
 
@@ -49,11 +49,11 @@ public class MenuOwnerService {
     }
 
     public void deleteMenu(Long userId, Long storeId, Long menuId) {
-        Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
-        validateStoreOwner(store.getUser().getId(), userId);
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
+        validateStoreOwner(storeOwnerId, userId);
 
         Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
-        validateMenuBelongsToStore(menu.getStore(), store);
+        validateMenuBelongsToStore(menu.getStore().getId(), storeId);
 
         menuRepository.delete(menu);
     }
@@ -64,8 +64,8 @@ public class MenuOwnerService {
         }
     }
 
-    private static void validateMenuBelongsToStore(Store menuStore, Store store) {
-        if (!menuStore.getId().equals(store.getId())) {
+    private static void validateMenuBelongsToStore(Long menuStoreId, Long storeId) {
+        if (!menuStoreId.equals(storeId)) {
             throw new CustomException(ErrorCode.NOT_STORE_MENU);
         }
     }
