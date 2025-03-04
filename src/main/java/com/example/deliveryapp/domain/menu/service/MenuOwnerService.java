@@ -58,6 +58,19 @@ public class MenuOwnerService {
         return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice());
     }
 
+    public void deleteMenu(Long userId, Long storeId, Long menuId) {
+        User user = userRepository.findActiveUserByIdOrThrow(userId);
+        validateOwnerRole(user.getRole());
+
+        Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
+        validateStoreOwner(store.getUser(), user);
+
+        Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
+        validateMenuBelongsToStore(menu.getStore(), store);
+
+        menuRepository.delete(menu);
+    }
+
     private static void validateOwnerRole(UserRole userRole) {
         if (!UserRole.OWNER.equals(userRole)) {
             throw new CustomException(ErrorCode.OWNER_ONLY_ACCESS);

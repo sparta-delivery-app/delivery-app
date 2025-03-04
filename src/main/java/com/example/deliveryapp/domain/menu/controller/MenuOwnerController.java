@@ -38,4 +38,14 @@ public class MenuOwnerController {
         MenuResponse response = menuOwnerService.updateMenu(authUser.getId(), storeId, menuId, request);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{menuId}")
+    public ResponseEntity<Void> deleteMenu(
+            @Auth AuthUser authUser,
+            @PathVariable Long storeId,
+            @PathVariable Long menuId
+    ) {
+        menuOwnerService.deleteMenu(authUser.getId(), storeId, menuId);
+        return ResponseEntity.ok().build();
+    }
 }
