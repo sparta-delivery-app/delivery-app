@@ -224,4 +224,105 @@ class MenuOwnerServiceTest {
             assertEquals(request.getPrice(), response.getPrice());
         }
     }
+
+    @Nested
+    @Order(3)
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class DeleteMenuTests {
+
+        @Test
+        @Order(1)
+        void 메뉴삭제_주인_권한_없음_실패() {
+            // given
+            User mockUser = mock(User.class);
+            when(mockUser.getRole()).thenReturn(UserRole.USER);
+            when(userRepository.findActiveUserByIdOrThrow(anyLong())).thenReturn(mockUser);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.deleteMenu(1L, 1L, 1L)
+            );
+
+            assertEquals(ErrorCode.OWNER_ONLY_ACCESS, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(2)
+        void 메뉴삭제_가게_주인_아님_실패() {
+            // given
+            User mockUser = mock(User.class);
+            when(mockUser.getId()).thenReturn(1L);
+            when(mockUser.getRole()).thenReturn(UserRole.OWNER);
+            when(userRepository.findActiveUserByIdOrThrow(anyLong())).thenReturn(mockUser);
+
+            Store mockStore = mock(Store.class);
+            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+
+            User storeOwnerUser = mock(User.class);
+            when(storeOwnerUser.getId()).thenReturn(2L);
+            when(mockStore.getUser()).thenReturn(storeOwnerUser);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.deleteMenu(mockUser.getId(), mockStore.getId(), 1L)
+            );
+            assertEquals(ErrorCode.NOT_STORE_OWNER, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(3)
+        void 메뉴삭제_가게_다름_실패() {
+            // given
+            User mockUser = mock(User.class);
+            when(mockUser.getId()).thenReturn(1L);
+            when(mockUser.getRole()).thenReturn(UserRole.OWNER);
+            when(userRepository.findActiveUserByIdOrThrow(anyLong())).thenReturn(mockUser);
+
+            Store mockStore = mock(Store.class);
+            when(mockStore.getId()).thenReturn(1L);
+            when(mockStore.getUser()).thenReturn(mockUser);
+            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+
+            Store anotherStore = mock(Store.class);
+            when(anotherStore.getId()).thenReturn(2L);
+
+            Menu mockMenu = mock(Menu.class);
+            when(mockMenu.getStore()).thenReturn(anotherStore);
+            when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.deleteMenu(mockUser.getId(), mockStore.getId(), 1L)
+            );
+            assertEquals(ErrorCode.NOT_STORE_MENU, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(4)
+        void 메뉴삭제_성공() {
+            // given
+            User mockUser = mock(User.class);
+            when(mockUser.getId()).thenReturn(1L);
+            when(mockUser.getRole()).thenReturn(UserRole.OWNER);
+            when(userRepository.findActiveUserByIdOrThrow(anyLong())).thenReturn(mockUser);
+
+            Store mockStore = mock(Store.class);
+            when(mockStore.getId()).thenReturn(1L);
+            when(mockStore.getUser()).thenReturn(mockUser);
+            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+
+            Menu mockMenu = spy(Menu.class);
+            when(mockMenu.getId()).thenReturn(1L);
+            when(mockMenu.getStore()).thenReturn(mockStore);
+            when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
+
+            doNothing().when(menuRepository).delete(any(Menu.class));
+
+            // when
+            menuOwnerService.deleteMenu(mockUser.getId(), mockStore.getId(), mockMenu.getId());
+
+            // then
+            verify(menuRepository, times(1)).delete(any(Menu.class));
+        }
+    }
 }
