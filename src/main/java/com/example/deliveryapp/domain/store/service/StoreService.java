@@ -16,6 +16,7 @@ import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
+import com.example.deliveryapp.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,16 +61,16 @@ public class StoreService {
                 .map(Store::getId)
                 .collect(Collectors.toList());
 
-        List<ReviewStatistics> countResults = reviewRepository.countAndAverageRatingByStoreIds(storeIds);
-        Map<Long, ReviewStatistics> reviewStatisticsMap = countResults.stream()
+        List<ReviewStatistics> reviewStatisticsList = reviewRepository.countAndAverageRatingByStoreIds(storeIds);
+        Map<Long, ReviewStatistics> reviewStatisticsMap = reviewStatisticsList.stream()
                 .collect(Collectors.toMap(ReviewStatistics::getStoreId, dto -> dto));
 
         return storePage.map(store -> {
-            ReviewStatistics statisticsDto = reviewStatisticsMap.get(store.getId());
+            ReviewStatistics statisticsDto = reviewStatisticsMap.getOrDefault(store.getId(), new ReviewStatistics(store.getId(), 0L, 0.0));
             return StorePageResponse.of(
                     store,
-                    statisticsDto != null ? statisticsDto.getAverageRating() : 0.0,
-                    statisticsDto != null ? statisticsDto.getCount() : 0L
+                    statisticsDto.getAverageRating(),
+                    statisticsDto.getCount()
             );
         });
     }
@@ -113,6 +114,6 @@ public class StoreService {
             throw new CustomException(ErrorCode.INVALID_USER_DELETE_STORE);
         }
         store.delete();
-        reviewDeleteService.delete(store);
+        reviewDeleteService.delete(storeId);
     }
 }

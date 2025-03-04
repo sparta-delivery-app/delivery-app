@@ -33,7 +33,7 @@ public class StoreController {
     @GetMapping("/page")
     public ResponseEntity<Page<StorePageResponse>> findAllPage(@PageableDefault(size =10) Pageable pageable) {
         Page<StorePageResponse> result = storeService.findAllPage(pageable);
-        return new ResponseEntity.ok(result);
+        return ResponseEntity.ok(result);
     }
 
     // 가게 단건 조회
