@@ -1,6 +1,7 @@
 package com.example.deliveryapp.domain.order.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -8,12 +9,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public class OrderMenuRequest {
 
-    @NotBlank
+    @NotNull
     private Long menuId;
 
     @NotBlank
     private String name;
 
-    @NotBlank
+    @NotNull
     private Long price;
 }
