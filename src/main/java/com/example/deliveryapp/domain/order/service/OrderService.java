@@ -3,6 +3,7 @@ package com.example.deliveryapp.domain.order.service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.order.dto.request.OrderRequest;
+import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
@@ -34,11 +35,11 @@ public class OrderService {
     @Transactional
     public OrderResponse createOrder(Long userId, OrderRequest orderRequest) {
         User user = userRepository.findById(userId)
-                .orElseThrow(()->new CustomException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Store store = storeRepository.findById(orderRequest.getStoreId())
-                .orElseThrow(()->new CustomException(ErrorCode.STORE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
-        Order order = new Order(user,store, OrderState.PENDING);
+        Order order = new Order(user, store, OrderState.PENDING);
 
         orderRepository.save(order);
 
@@ -57,23 +58,111 @@ public class OrderService {
         List<Order> orderList = orderRepository.findOrdersByUserId(userId);
 
         return orderList.stream()
-                .map(order->{
+                .map(order -> {
                     OrderMenu orderMenu = orderMenuRepository.findByOrderId(order.getId());
-                    return new OrderResponse(order,orderMenu);
+                    return new OrderResponse(order, orderMenu);
                 }).collect(toList());
     }
 
     @Transactional
     public List<OrderResponse> getOrdersByStoreId(Long storeId, Long userId, UserRole userRole) {
-        if(!(UserRole.OWNER).equals(userRole)) {
+        Store store = storeRepository.findById(storeId).orElseThrow(
+                ()->new CustomException(ErrorCode.STORE_NOT_FOUND));
+
+        if(!userId.equals(store.getUser().getId())) {
             throw new CustomException(ErrorCode.INVALID_USER_ROLE);
         }
 
         List<Order> orderList = orderRepository.findOrdersByStoreId(storeId);
         return orderList.stream()
-                .map(order->{
+                .map(order -> {
                     OrderMenu orderMenu = orderMenuRepository.findByOrderId(order.getId());
-                    return new OrderResponse(order,orderMenu);
+                    return new OrderResponse(order, orderMenu);
                 }).collect(toList());
+    }
+
+    @Transactional
+    public void updateOrderState(Long userId, Long orderId, OrderStateUpdateRequest request) {
+        Order order = orderRepository.findById(orderId).orElseThrow(
+                () -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        Long orderUserId = order.getUser().getId();
+        Long storeOwnerId = order.getStore().getUser().getId();
+        OrderState orderState = request.getOrderState();
+
+        switch (orderState) {
+            case CANCELED:
+                validateCancelOrder(userId, order, orderUserId);
+                order.setOrderState(OrderState.CANCELED);
+                break;
+            case ACCEPTED:
+                validateAcceptOrder(userId, order, storeOwnerId);
+                order.setOrderState(OrderState.ACCEPTED);
+                break;
+            case REJECTED:
+                validateRejectOrder(userId, order, storeOwnerId);
+                order.setOrderState(OrderState.REJECTED);
+                break;
+            case DELIVERY:
+                validateStartDelivery(userId, order, storeOwnerId);
+                order.setOrderState(OrderState.DELIVERY);
+                break;
+            case COMPLETED:
+                validateCompleteDelivery(userId, order, storeOwnerId);
+                order.setOrderState(OrderState.COMPLETED);
+                break;
+            default:
+                throw new CustomException(ErrorCode.INVALID_REQUEST);
+        }
+    }
+
+    // 주문 취소 상태 검증
+    private void validateCancelOrder(Long userId, Order order, Long orderUserId) {
+        if (!orderUserId.equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+        if (!OrderState.PENDING.equals(order.getOrderState())) {
+            throw new CustomException(ErrorCode.ORDER_CANNOT_BE_CANCELED);
+        }
+    }
+
+    // 주문 수락 상태 검증
+    private void validateAcceptOrder(Long userId, Order order, Long storeOwnerId) {
+        if (!storeOwnerId.equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+        if (!OrderState.PENDING.equals(order.getOrderState())) {
+            throw new CustomException(ErrorCode.ORDER_CANNOT_BE_ACCEPTED);
+        }
+    }
+
+    // 주문 거절 상태 검증
+    private void validateRejectOrder(Long userId, Order order, Long storeOwnerId) {
+        if (!storeOwnerId.equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+        if (!OrderState.PENDING.equals(order.getOrderState())) {
+            throw new CustomException(ErrorCode.ORDER_CANNOT_BE_REJECTED);
+        }
+    }
+
+    // 배달 시작 상태 검증
+    private void validateStartDelivery(Long userId, Order order, Long storeOwnerId) {
+        if (!storeOwnerId.equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+        if (!OrderState.ACCEPTED.equals(order.getOrderState())) {
+            throw new CustomException(ErrorCode.ORDER_CANNOT_BE_DELIVERY);
+        }
+    }
+
+    // 배달 완료 상태 검증
+    private void validateCompleteDelivery(Long userId, Order order, Long storeOwnerId) {
+        if (!storeOwnerId.equals(userId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+        if (!OrderState.DELIVERY.equals(order.getOrderState())) {
+            throw new CustomException(ErrorCode.ORDER_CANNOT_BE_COMPLETED);
+        }
     }
 }
