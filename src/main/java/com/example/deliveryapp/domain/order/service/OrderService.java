@@ -19,8 +19,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
+import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -38,6 +41,23 @@ public class OrderService {
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
         Store store = storeRepository.findById(orderRequest.getStoreId())
                 .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
+
+        LocalTime nowTime = LocalTime.now();
+        LocalTime openTime = store.getOpenTime();
+        LocalTime closeTime = store.getCloseTime();
+
+        boolean isClosedToday = nowTime.isBefore(openTime) || nowTime.isAfter(closeTime);
+
+        // close 시간이 자정 넘는 경우 (ex: 술집?)
+        boolean isClosedNextDay = closeTime.isBefore(openTime) && nowTime.isBefore(openTime) && nowTime.isAfter(closeTime);
+
+        if(isClosedNextDay || isClosedToday) {
+            throw new CustomException(ErrorCode.ORDER_CLOSED);
+        }
+
+        if(orderRequest.getOrderMenus().getPrice()<store.getMinimumOrderPrice()) {
+            throw new CustomException(ErrorCode.ORDER_TOO_CHEAP);
+        }
 
         Order order = new Order(user, store, OrderState.PENDING);
 
