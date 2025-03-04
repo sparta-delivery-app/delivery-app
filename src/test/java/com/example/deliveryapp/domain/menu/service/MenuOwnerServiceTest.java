@@ -107,17 +107,13 @@ class MenuOwnerServiceTest {
         void 메뉴수정_가게_주인_아님_실패() {
             // given
             Long userId = 1L;
+            Long storeOwnerId = 2L;
 
-            Store mockStore = mock(Store.class);
-            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
-
-            User storeOwnerUser = mock(User.class);
-            when(storeOwnerUser.getId()).thenReturn(2L);
-            when(mockStore.getUser()).thenReturn(storeOwnerUser);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(storeOwnerId);
 
             // when & then
             CustomException thrown = assertThrows(CustomException.class,
-                    () -> menuOwnerService.updateMenu(userId, mockStore.getId(), 1L, request)
+                    () -> menuOwnerService.updateMenu(userId, 1L, 1L, request)
             );
             assertEquals(ErrorCode.NOT_STORE_OWNER, thrown.getErrorCode());
         }
@@ -126,13 +122,10 @@ class MenuOwnerServiceTest {
         @Order(2)
         void 메뉴수정_가게_다름_실패() {
             // given
-            User mockUser = mock(User.class);
-            when(mockUser.getId()).thenReturn(1L);
+            Long userId = 1L;
+            Long storeId = 1L;
 
-            Store mockStore = mock(Store.class);
-            when(mockStore.getId()).thenReturn(1L);
-            when(mockStore.getUser()).thenReturn(mockUser);
-            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
 
             Store anotherStore = mock(Store.class);
             when(anotherStore.getId()).thenReturn(2L);
@@ -143,7 +136,7 @@ class MenuOwnerServiceTest {
 
             // when & then
             CustomException thrown = assertThrows(CustomException.class,
-                    () -> menuOwnerService.updateMenu(mockUser.getId(), mockStore.getId(), 1L, request)
+                    () -> menuOwnerService.updateMenu(userId, storeId, 1L, request)
             );
             assertEquals(ErrorCode.NOT_STORE_MENU, thrown.getErrorCode());
         }
@@ -152,13 +145,11 @@ class MenuOwnerServiceTest {
         @Order(3)
         void 메뉴수정_성공() {
             // given
-            User mockUser = mock(User.class);
-            when(mockUser.getId()).thenReturn(1L);
+            Long userId = 1L;
 
             Store mockStore = mock(Store.class);
             when(mockStore.getId()).thenReturn(1L);
-            when(mockStore.getUser()).thenReturn(mockUser);
-            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
 
             Menu mockMenu = spy(Menu.class);
             when(mockMenu.getId()).thenReturn(1L);
@@ -166,7 +157,7 @@ class MenuOwnerServiceTest {
             when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
 
             // when
-            MenuResponse response = menuOwnerService.updateMenu(mockUser.getId(), mockStore.getId(), mockMenu.getId(), request);
+            MenuResponse response = menuOwnerService.updateMenu(userId, mockStore.getId(), mockMenu.getId(), request);
 
             // then
             assertNotNull(response);
@@ -186,17 +177,12 @@ class MenuOwnerServiceTest {
         void 메뉴삭제_가게_주인_아님_실패() {
             // given
             Long userId = 1L;
-
-            Store mockStore = mock(Store.class);
-            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
-
-            User storeOwnerUser = mock(User.class);
-            when(storeOwnerUser.getId()).thenReturn(2L);
-            when(mockStore.getUser()).thenReturn(storeOwnerUser);
+            Long storeOwnerId = 2L;
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(storeOwnerId);
 
             // when & then
             CustomException thrown = assertThrows(CustomException.class,
-                    () -> menuOwnerService.deleteMenu(userId, mockStore.getId(), 1L)
+                    () -> menuOwnerService.deleteMenu(userId, 1L, 1L)
             );
             assertEquals(ErrorCode.NOT_STORE_OWNER, thrown.getErrorCode());
         }
@@ -205,13 +191,10 @@ class MenuOwnerServiceTest {
         @Order(2)
         void 메뉴삭제_가게_다름_실패() {
             // given
-            User mockUser = mock(User.class);
-            when(mockUser.getId()).thenReturn(1L);
+            Long userId = 1L;
+            Long storeId = 1L;
 
-            Store mockStore = mock(Store.class);
-            when(mockStore.getId()).thenReturn(1L);
-            when(mockStore.getUser()).thenReturn(mockUser);
-            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
 
             Store anotherStore = mock(Store.class);
             when(anotherStore.getId()).thenReturn(2L);
@@ -222,7 +205,7 @@ class MenuOwnerServiceTest {
 
             // when & then
             CustomException thrown = assertThrows(CustomException.class,
-                    () -> menuOwnerService.deleteMenu(mockUser.getId(), mockStore.getId(), 1L)
+                    () -> menuOwnerService.deleteMenu(userId, storeId, 1L)
             );
             assertEquals(ErrorCode.NOT_STORE_MENU, thrown.getErrorCode());
         }
@@ -231,15 +214,13 @@ class MenuOwnerServiceTest {
         @Order(3)
         void 메뉴삭제_성공() {
             // given
-            User mockUser = mock(User.class);
-            when(mockUser.getId()).thenReturn(1L);
+            Long userId = 1L;
 
             Store mockStore = mock(Store.class);
             when(mockStore.getId()).thenReturn(1L);
-            when(mockStore.getUser()).thenReturn(mockUser);
-            when(storeRepository.findActiveStoreByIdOrThrow(anyLong())).thenReturn(mockStore);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
 
-            Menu mockMenu = spy(Menu.class);
+            Menu mockMenu = mock(Menu.class);
             when(mockMenu.getId()).thenReturn(1L);
             when(mockMenu.getStore()).thenReturn(mockStore);
             when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
@@ -247,7 +228,7 @@ class MenuOwnerServiceTest {
             doNothing().when(menuRepository).delete(any(Menu.class));
 
             // when
-            menuOwnerService.deleteMenu(mockUser.getId(), mockStore.getId(), mockMenu.getId());
+            menuOwnerService.deleteMenu(userId, mockStore.getId(), mockMenu.getId());
 
             // then
             verify(menuRepository, times(1)).delete(any(Menu.class));
