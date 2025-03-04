@@ -3,6 +3,7 @@ package com.example.deliveryapp.domain.menu.service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
+import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
@@ -42,6 +43,21 @@ public class MenuOwnerService {
         return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice());
     }
 
+    public MenuResponse updateMenu(Long userId, Long storeId, Long menuId, MenuUpdateRequest request) {
+        User user = userRepository.findActiveUserByIdOrThrow(userId);
+        validateOwnerRole(user.getRole());
+
+        Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
+        validateStoreOwner(store.getUser(), user);
+
+        Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
+        validateMenuBelongsToStore(menu.getStore(), store);
+
+        menu.update(request.getMenuName(), request.getPrice());
+
+        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice());
+    }
+
     private static void validateOwnerRole(UserRole userRole) {
         if (!UserRole.OWNER.equals(userRole)) {
             throw new CustomException(ErrorCode.OWNER_ONLY_ACCESS);
@@ -51,6 +67,12 @@ public class MenuOwnerService {
     private static void validateStoreOwner(User storeOwner, User currentUser) {
         if (!storeOwner.getId().equals(currentUser.getId())) {
             throw new CustomException(ErrorCode.NOT_STORE_OWNER);
+        }
+    }
+
+    private static void validateMenuBelongsToStore(Store menuStore, Store store) {
+        if (!menuStore.getId().equals(store.getId())) {
+            throw new CustomException(ErrorCode.NOT_STORE_MENU);
         }
     }
 }

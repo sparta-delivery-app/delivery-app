@@ -33,4 +33,9 @@ public class Menu extends Timestamped {
         this.price = price;
         this.store = store;
     }
+
+    public void update(String menuName, Long price) {
+        this.name = menuName;
+        this.price = price;
+    }
 }

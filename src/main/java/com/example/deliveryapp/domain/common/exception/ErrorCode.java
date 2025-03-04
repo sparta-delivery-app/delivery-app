@@ -32,6 +32,10 @@ public enum ErrorCode {
     // STORE
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORE001", "가게를 찾을 수 없습니다"),
     NOT_STORE_OWNER(HttpStatus.FORBIDDEN, "STORE002", "해당 가게에 대한 권한이 없습니다"),
+
+    // MENU
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "MENU001", "메뉴를 찾을 수 없습니다"),
+    NOT_STORE_MENU(HttpStatus.BAD_REQUEST, "MENU002", "해당 가게에 속한 메뉴가 아닙니다"),
     ;
 
     private final HttpStatus status;
