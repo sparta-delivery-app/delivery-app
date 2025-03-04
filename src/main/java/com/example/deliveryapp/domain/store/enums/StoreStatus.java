@@ -6,7 +6,7 @@ import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import java.util.Arrays;
 
 public enum StoreStatus {
-    OPEN, CLOSED_BY_TIME, TEMPORARILY_CLOSED;
+    OPEN, CLOSED_BY_TIME, PERMANENTLY_CLOSED;
 
     public static StoreStatus of(String status) {
         return Arrays.stream(StoreStatus.values())

@@ -31,6 +31,11 @@ public enum ErrorCode {
 
     // STORE
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORE001", "가게를 찾을 수 없습니다"),
+    INVALID_STORE_STATUS(HttpStatus.BAD_REQUEST, "STORE002", "현재 가게는 주문을 받을 수 없는 상태입니다"),
+    INVALID_USER_UPDATE_STORE(HttpStatus.FORBIDDEN, "STORE003", "가게 수정 권한이 없습니다"),
+    INVALID_USER_DELETE_STORE(HttpStatus.FORBIDDEN, "STORE004", "가게 삭제 권한이 없습니다"),
+    STORE_HAS_ORDERS(HttpStatus.CONFLICT, "STORE005", "주문이 있는 가게는 삭제할 수 없습니다"),
+
     NOT_STORE_OWNER(HttpStatus.FORBIDDEN, "STORE002", "해당 가게에 대한 권한이 없습니다"),
 
     // MENU
