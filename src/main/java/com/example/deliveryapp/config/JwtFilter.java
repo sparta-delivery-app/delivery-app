@@ -1,16 +1,13 @@
 package com.example.deliveryapp.config;
 
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
+import com.example.deliveryapp.domain.user.enums.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
-import jakarta.servlet.Filter;
-import jakarta.servlet.FilterChain;
 import jakarta.servlet.FilterConfig;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
+import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -63,10 +60,21 @@ public class JwtFilter implements Filter {
                 return;
             }
 
+            UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
+
             request.setAttribute("userId", Long.parseLong(claims.getSubject()));
             request.setAttribute("email", claims.get("email"));
             request.setAttribute("name", claims.get("name"));
             request.setAttribute("userRole", claims.get("userRole"));
+
+            if (url.startsWith("/owner")) {
+                if (!UserRole.OWNER.equals(userRole)) {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "관리자 권한이 없습니다.");
+                    return;
+                }
+                chain.doFilter(request, response);
+                return;
+            }
 
             chain.doFilter(servletRequest, servletResponse);
         } catch (SecurityException | MalformedJwtException e) {
