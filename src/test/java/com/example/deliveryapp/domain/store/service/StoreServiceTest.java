@@ -3,7 +3,9 @@ package com.example.deliveryapp.domain.store.service;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
+import com.example.deliveryapp.domain.review.repository.ReviewRepository;
 import com.example.deliveryapp.domain.store.dto.request.StoreSaveRequest;
+import com.example.deliveryapp.domain.store.dto.response.StorePageResponse;
 import com.example.deliveryapp.domain.store.dto.response.StoreSaveResponse;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
@@ -18,17 +20,26 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 class StoreServiceTest {
+
+    @Mock
+    private ReviewRepository reviewRepository;
 
     @Mock
     private StoreRepository storeRepository;
@@ -112,5 +123,31 @@ class StoreServiceTest {
 
         // then
         assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    public void 가게_페이지를_정상_조회한다() {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10);
+        List<Store> stores = new ArrayList<>();
+        User user = User.builder()
+                .email("test@test.com")
+                .password("password")
+                .name("testName")
+                .role(UserRole.USER).
+                build();
+
+        stores.add(new Store("가게1", LocalTime.of(10, 0), LocalTime.of(20,0), 10000L, StoreStatus.OPEN, user));
+        Page<Store> storesPage = new PageImpl<>(stores, pageable, stores.size());
+        given(storeRepository.findAll(pageable)).willReturn(storesPage);
+        given(reviewRepository.countAndAverageRatingByStoreIds(anyList()).willReturn(new ArrayList<>());
+
+        // when
+        Page<StorePageResponse> result = storeService.findAllPage(pageable);
+
+        // then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("가게1", result.getContent().get(0).getName());
     }
 }
