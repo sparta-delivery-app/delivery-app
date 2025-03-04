@@ -25,4 +25,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
                 .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
     }
+
+    boolean existsByIdAndDeletedAtIsNull(Long id);
 }
