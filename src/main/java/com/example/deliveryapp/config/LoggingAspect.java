@@ -1,14 +1,13 @@
-package com.example.deliveryapp.domain.common.aspect;
+package com.example.deliveryapp.config;
 
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
-import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.ProceedingJoinPoint;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -21,10 +20,12 @@ public class LoggingAspect {
     private final OrderRepository orderRepository;
 
     @Pointcut("execution(* com.example.deliveryapp.domain.order.controller.OrderController.createOrder(..))")
-    public void createOrderMethod() {}
+    public void createOrderMethod() {
+    }
 
     @Pointcut("execution(* com.example.deliveryapp.domain.order.controller.OrderController.updateOrderState(..))")
-    public void updateOrderStateMethod() {}
+    public void updateOrderStateMethod() {
+    }
 
     // 주문 생성 메서드
     @AfterReturning(value = "createOrderMethod()", returning = "orderResponse")

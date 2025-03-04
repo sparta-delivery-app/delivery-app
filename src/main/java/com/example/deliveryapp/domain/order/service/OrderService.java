@@ -19,11 +19,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.type.LogicalType.DateTime;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -51,11 +49,11 @@ public class OrderService {
         // close 시간이 자정 넘는 경우 (ex: 술집?)
         boolean isClosedNextDay = closeTime.isBefore(openTime) && nowTime.isBefore(openTime) && nowTime.isAfter(closeTime);
 
-        if(isClosedNextDay || isClosedToday) {
+        if (isClosedNextDay || isClosedToday) {
             throw new CustomException(ErrorCode.ORDER_CLOSED);
         }
 
-        if(orderRequest.getOrderMenus().getPrice()<store.getMinimumOrderPrice()) {
+        if (orderRequest.getOrderMenus().getPrice() < store.getMinimumOrderPrice()) {
             throw new CustomException(ErrorCode.ORDER_TOO_CHEAP);
         }
 
@@ -87,9 +85,9 @@ public class OrderService {
     @Transactional
     public List<OrderResponse> getOrdersByStoreId(Long storeId, Long userId, UserRole userRole) {
         Store store = storeRepository.findById(storeId).orElseThrow(
-                ()->new CustomException(ErrorCode.STORE_NOT_FOUND));
+                () -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
-        if(!userId.equals(store.getUser().getId())) {
+        if (!userId.equals(store.getUser().getId())) {
             throw new CustomException(ErrorCode.INVALID_USER_ROLE);
         }
 

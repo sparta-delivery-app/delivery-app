@@ -38,7 +38,7 @@ public enum ErrorCode {
     NOT_STORE_MENU(HttpStatus.BAD_REQUEST, "MENU002", "해당 가게에 속한 메뉴가 아닙니다"),
 
     // ORDER
-    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND,"ORDER001","주문 정보를 찾을 수 없습니다"),
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER001", "주문 정보를 찾을 수 없습니다"),
     ORDER_CANNOT_BE_ACCEPTED(HttpStatus.BAD_REQUEST, "ORDER002", "대기 중인 주문만 수락할 수 있습니다"),
     ORDER_CANNOT_BE_REJECTED(HttpStatus.BAD_REQUEST, "ORDER003", "대기 중인 주문만 거절할 수 있습니다"),
     ORDER_CANNOT_BE_DELIVERY(HttpStatus.BAD_REQUEST, "ORDER004", "수락된 주문만 배달을 시작할 수 있습니다"),
