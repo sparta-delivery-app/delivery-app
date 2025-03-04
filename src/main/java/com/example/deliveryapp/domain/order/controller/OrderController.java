@@ -31,9 +31,9 @@ public class OrderController {
         return orderService.getOrdersByUserId(authUser.getId());
     }
 
-    @GetMapping("/store/{storeId}/orders")
+    @GetMapping("/stores/{storeId}/orders")
     public List<OrderResponse> getStoreOrders(@PathVariable Long storeId, @Auth AuthUser authUser) {
-        return orderService.getOrdersByStoreId(storeId, authUser.getId(), authUser.getUserRole());
+        return orderService.getOrdersByStoreId(storeId, authUser.getId());
     }
 
     @PatchMapping("/orders/{orderId}")
