@@ -84,4 +84,26 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.email").value(email));
     }
 
+    @Test
+    void 회원_탈퇴() throws Exception {
+        Long userId = 1L;
+        String bearerToken = "bearerToken";
+
+        UserDeleteRequest userDeleteRequest = new UserDeleteRequest("password");
+
+        doNothing().when(userService).deleteUser(userId, userDeleteRequest);
+
+        mockMvc.perform(delete("/users")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userDeleteRequest))
+                        .with(request -> {
+                    request.setAttribute("userId", userId);
+                    request.setAttribute("email","ema@ema.com");
+                    request.setAttribute("name","name");
+                    request.setAttribute("userRole","USER");
+                    return request;
+                }))
+                .andExpect(status().isOk());
+    }
 }
