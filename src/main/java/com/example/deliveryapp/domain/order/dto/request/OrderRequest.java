@@ -13,8 +13,5 @@ public class OrderRequest {
     private Long storeId;
 
     @NotBlank
-    private OrderState orderState;
-
-    @NotBlank
     private OrderMenuRequest orderMenus;
 }
