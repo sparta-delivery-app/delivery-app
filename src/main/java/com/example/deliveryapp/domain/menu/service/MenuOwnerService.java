@@ -9,9 +9,6 @@ import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
-import com.example.deliveryapp.domain.user.entity.User;
-import com.example.deliveryapp.domain.user.enums.UserRole;
-import com.example.deliveryapp.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MenuOwnerService {
 
-    private final UserRepository userRepository;
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
 
     public MenuResponse saveMenu(Long userId, Long storeId, MenuSaveRequest request) {
-        User user = userRepository.findActiveUserByIdOrThrow(userId);
-        validateOwnerRole(user.getRole());
-
         Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
-        validateStoreOwner(store.getUser(), user);
+        validateStoreOwner(store.getUser().getId(), userId);
 
         Menu menu = Menu.builder()
                 .name(request.getMenuName())
@@ -44,11 +37,8 @@ public class MenuOwnerService {
     }
 
     public MenuResponse updateMenu(Long userId, Long storeId, Long menuId, MenuUpdateRequest request) {
-        User user = userRepository.findActiveUserByIdOrThrow(userId);
-        validateOwnerRole(user.getRole());
-
         Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
-        validateStoreOwner(store.getUser(), user);
+        validateStoreOwner(store.getUser().getId(), userId);
 
         Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
         validateMenuBelongsToStore(menu.getStore(), store);
@@ -59,11 +49,8 @@ public class MenuOwnerService {
     }
 
     public void deleteMenu(Long userId, Long storeId, Long menuId) {
-        User user = userRepository.findActiveUserByIdOrThrow(userId);
-        validateOwnerRole(user.getRole());
-
         Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
-        validateStoreOwner(store.getUser(), user);
+        validateStoreOwner(store.getUser().getId(), userId);
 
         Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
         validateMenuBelongsToStore(menu.getStore(), store);
@@ -71,14 +58,8 @@ public class MenuOwnerService {
         menuRepository.delete(menu);
     }
 
-    private static void validateOwnerRole(UserRole userRole) {
-        if (!UserRole.OWNER.equals(userRole)) {
-            throw new CustomException(ErrorCode.OWNER_ONLY_ACCESS);
-        }
-    }
-
-    private static void validateStoreOwner(User storeOwner, User currentUser) {
-        if (!storeOwner.getId().equals(currentUser.getId())) {
+    private static void validateStoreOwner(Long storeOwnerId, Long currentUserId) {
+        if (!storeOwnerId.equals(currentUserId)) {
             throw new CustomException(ErrorCode.NOT_STORE_OWNER);
         }
     }
