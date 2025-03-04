@@ -47,28 +47,28 @@ public class UserServiceTest {
     class signUp {
         @Test
         void 이미_존재하는_이메일로_회원가입시_예외_발생() {
-            SignUpRequest signUpRequest = new SignUpRequest("email@email.com","password","name","OWNER");
+            SignUpRequest signUpRequest = new SignUpRequest("email@email.com", "password", "name", "OWNER");
 
             given(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(true);
 
-            assertThrows(CustomException.class,()->userService.signUp(signUpRequest),"유효하지 않은 요청 값입니다");
+            assertThrows(CustomException.class, () -> userService.signUp(signUpRequest), "유효하지 않은 요청 값입니다");
         }
 
         @Test
         void 탈퇴한_이메일로_회원가입시_예외_발생() {
-            SignUpRequest signUpRequest = new SignUpRequest("email@email.com","password","name","OWNER");
+            SignUpRequest signUpRequest = new SignUpRequest("email@email.com", "password", "name", "OWNER");
 
             given(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
             given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(true);
 
-            assertThrows(CustomException.class,()->userService.signUp(signUpRequest),"이미 탈퇴한 이메일입니다");
+            assertThrows(CustomException.class, () -> userService.signUp(signUpRequest), "이미 탈퇴한 이메일입니다");
         }
 
         @Test
         void 회원가입_성공() {
             long userId = 1L;
 
-            SignUpRequest signUpRequest = new SignUpRequest("email@email.com","password","name","OWNER");
+            SignUpRequest signUpRequest = new SignUpRequest("email@email.com", "password", "name", "OWNER");
 
             given(userRepository.existsByEmailAndDeletedAtIsNull(anyString())).willReturn(false);
             given(userRepository.existsByEmailAndDeletedAtIsNotNull(anyString())).willReturn(false);
@@ -80,7 +80,7 @@ public class UserServiceTest {
                     signUpRequest.getName(),
                     UserRole.of(signUpRequest.getUserRole())
             );
-            ReflectionTestUtils.setField(user,"id",userId);
+            ReflectionTestUtils.setField(user, "id", userId);
 
             given(userRepository.save(any(User.class))).willReturn(user);
             given(jwtUtil.createToken(anyLong(), anyString(), anyString(), any(UserRole.class))).willReturn("BearerToken");
@@ -97,35 +97,35 @@ public class UserServiceTest {
     class signIn {
         @Test
         void 존재하지_않는_이메일로_로그인시_예외_발생() {
-            SignInRequest signInRequest = new SignInRequest("email@email.com","password");
+            SignInRequest signInRequest = new SignInRequest("email@email.com", "password");
 
             given(userRepository.findByEmail(anyString())).willReturn(Optional.empty());
 
-            assertThrows(CustomException.class,()->userService.signIn(signInRequest),"사용자를 찾을 수 없습니다");
+            assertThrows(CustomException.class, () -> userService.signIn(signInRequest), "사용자를 찾을 수 없습니다");
         }
 
         @Test
         void 비밀번호_불일치시_예외_발생() {
             long userId = 1L;
-            User user = new User("email@email.com","password","name",UserRole.OWNER);
-            SignInRequest signInRequest = new SignInRequest("email@email.com","password");
-            ReflectionTestUtils.setField(user,"id",userId);
+            User user = new User("email@email.com", "password", "name", UserRole.OWNER);
+            SignInRequest signInRequest = new SignInRequest("email@email.com", "password");
+            ReflectionTestUtils.setField(user, "id", userId);
 
             given(userRepository.findByEmail(anyString())).willReturn(Optional.of(user));
-            given(passwordEncoder.matches(anyString(),anyString())).willReturn(false);
+            given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
 
-            assertThrows(CustomException.class,()->userService.signIn(signInRequest),"비밀번호가 올바르지 않습니다.");
+            assertThrows(CustomException.class, () -> userService.signIn(signInRequest), "비밀번호가 올바르지 않습니다.");
         }
 
         @Test
         void 로그인_성공() {
             long userId = 1L;
-            User user = new User("email@email.com","password","name",UserRole.OWNER);
-            SignInRequest signInRequest = new SignInRequest("email@email.com","password");
-            ReflectionTestUtils.setField(user,"id",userId);
+            User user = new User("email@email.com", "password", "name", UserRole.OWNER);
+            SignInRequest signInRequest = new SignInRequest("email@email.com", "password");
+            ReflectionTestUtils.setField(user, "id", userId);
 
             given(userRepository.findByEmail(anyString())).willReturn(Optional.of(user));
-            given(passwordEncoder.matches(anyString(),anyString())).willReturn(true);
+            given(passwordEncoder.matches(anyString(), anyString())).willReturn(true);
             given(jwtUtil.createToken(anyLong(), anyString(), anyString(), any(UserRole.class))).willReturn("BearerToken");
 
             SignInResponse signInResponse = userService.signIn(signInRequest);
@@ -143,23 +143,23 @@ public class UserServiceTest {
 
             given(userRepository.findById(anyLong())).willReturn(Optional.empty());
 
-            assertThrows(CustomException.class,()->userService.getUser(userId),"사용자를 찾을 수 없습니다");
+            assertThrows(CustomException.class, () -> userService.getUser(userId), "사용자를 찾을 수 없습니다");
         }
 
         @Test
         void 사용자_id로_프로필_조회_성공() {
             long userId = 1L;
             String email = "email@email.com";
-            User user = new User(email,"password","name",UserRole.OWNER);
-            ReflectionTestUtils.setField(user,"id",userId);
+            User user = new User(email, "password", "name", UserRole.OWNER);
+            ReflectionTestUtils.setField(user, "id", userId);
 
             given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
 
             UserResponse userResponse = userService.getUser(userId);
 
             assertNotNull(userResponse);
-            assertEquals(userResponse.getId(),userId);
-            assertEquals(userResponse.getEmail(),email);
+            assertEquals(userResponse.getId(), userId);
+            assertEquals(userResponse.getEmail(), email);
         }
     }
 
@@ -177,7 +177,7 @@ public class UserServiceTest {
             given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
             given(passwordEncoder.matches(anyString(), anyString())).willReturn(false);
 
-            assertThrows(CustomException.class,()->userService.deleteUser(userId,userDeleteRequest),"비밀번호가 올바르지 않습니다.");
+            assertThrows(CustomException.class, () -> userService.deleteUser(userId, userDeleteRequest), "비밀번호가 올바르지 않습니다.");
         }
 
         @Test

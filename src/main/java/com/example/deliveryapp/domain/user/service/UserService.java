@@ -77,7 +77,7 @@ public class UserService {
     public void deleteUser(Long id, UserDeleteRequest userDeleteRequest) {
         User user = getUserById(id);
 
-        if(!passwordEncoder.matches(userDeleteRequest.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(userDeleteRequest.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
 

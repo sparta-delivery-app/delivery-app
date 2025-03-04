@@ -30,14 +30,14 @@ public class UserController {
     public SignInResponse signIn(@Valid @RequestBody SignInRequest signInRequest) {
         return userService.signIn(signInRequest);
     }
-    
+
     @GetMapping("/users/{id}")
     public ResponseEntity<UserResponse> getUser(@PathVariable long id) {
         return ResponseEntity.ok(userService.getUser(id));
     }
 
     @DeleteMapping("/users")
-    public ResponseEntity<Void> deleteUser(@Auth AuthUser authUser, @Valid @RequestBody UserDeleteRequest userDeleteRequest){
+    public ResponseEntity<Void> deleteUser(@Auth AuthUser authUser, @Valid @RequestBody UserDeleteRequest userDeleteRequest) {
         userService.deleteUser(authUser.getId(), userDeleteRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
