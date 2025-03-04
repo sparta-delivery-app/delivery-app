@@ -83,7 +83,7 @@ public class OrderService {
     }
 
     @Transactional
-    public List<OrderResponse> getOrdersByStoreId(Long storeId, Long userId, UserRole userRole) {
+    public List<OrderResponse> getOrdersByStoreId(Long storeId, Long userId) {
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
