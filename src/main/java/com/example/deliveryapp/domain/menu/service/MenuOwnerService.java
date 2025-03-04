@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -55,7 +57,7 @@ public class MenuOwnerService {
         Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
         validateMenuBelongsToStore(menu.getStore().getId(), storeId);
 
-        menuRepository.delete(menu);
+        menu.setDeletedAt(LocalDateTime.now());
     }
 
     private static void validateStoreOwner(Long storeOwnerId, Long currentUserId) {

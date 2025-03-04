@@ -16,6 +16,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -221,17 +223,14 @@ class MenuOwnerServiceTest {
             when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
 
             Menu mockMenu = mock(Menu.class);
-            when(mockMenu.getId()).thenReturn(1L);
             when(mockMenu.getStore()).thenReturn(mockStore);
             when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
 
-            doNothing().when(menuRepository).delete(any(Menu.class));
-
             // when
-            menuOwnerService.deleteMenu(userId, mockStore.getId(), mockMenu.getId());
+            menuOwnerService.deleteMenu(userId, mockStore.getId(), 1L);
 
             // then
-            verify(menuRepository, times(1)).delete(any(Menu.class));
+            verify(mockMenu, times(1)).setDeletedAt(any(LocalDateTime.class));
         }
     }
 }
