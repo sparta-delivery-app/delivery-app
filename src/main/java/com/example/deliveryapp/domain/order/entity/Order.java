@@ -5,13 +5,11 @@ import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends Timestamped {
