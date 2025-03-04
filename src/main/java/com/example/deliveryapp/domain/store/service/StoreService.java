@@ -4,6 +4,7 @@ import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
+import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.review.repository.ReviewRepository;
 import com.example.deliveryapp.domain.store.dto.ReviewStatistics;
 import com.example.deliveryapp.domain.store.dto.request.StoreSaveRequest;
@@ -37,15 +38,17 @@ public class StoreService {
     private final UserService userService;
     private final ReviewDeleteService reviewDeleteService;
     private final MenuRepository menuRepository;
+    private final OrderRepository orderRepository;
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     // 가게 생성
     @Transactional
     public StoreSaveResponse save(Long userId, StoreSaveRequest dto) {
         User user = userService.findById(userId);
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime openTime = LocalTime.parse(dto.getOpenTime(), formatter);
-        LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), formatter);
+        LocalTime openTime = LocalTime.parse(dto.getOpenTime(), FORMATTER);
+        LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), FORMATTER);
         StoreStatus status = StoreStatus.valueOf(dto.getStatus());
         Store store = new Store(dto.getName(), openTime, closeTime, dto.getMinimumOrderPrice(), status, user);
         storeRepository.save(store);
@@ -82,7 +85,11 @@ public class StoreService {
                 orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
         List<Menu> menus = menuRepository.findAllByStoreId(store.getId());
-        return StoreResponse.of(store, menus.stream().map(MenuResponse::of).toList());
+        return StoreResponse.of(store, toMenuResponses(menus));
+    }
+
+    private List<MenuResponse> toMenuResponses(List<Menu> menus) {
+        return menus.stream().map(MenuResponse::of).toList();
     }
 
     // 가게 수정
@@ -96,10 +103,14 @@ public class StoreService {
         if (!userId.equals(findStore.getUser().getId())) {
             throw new CustomException(ErrorCode.INVALID_USER_UPDATE_STORE);
         }
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime openTime = LocalTime.parse(dto.getOpenTime(), formatter);
-        LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), formatter);
+
+        LocalTime openTime = LocalTime.parse(dto.getOpenTime(), FORMATTER);
+        LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), FORMATTER);
         StoreStatus status = StoreStatus.valueOf(dto.getStatus());
+
+        if (status == StoreStatus.PERMANENTLY_CLOSED && orderRepository.existsByStoreId(storeId)) {
+            throw new CustomException(ErrorCode.STORE_HAS_ORDERS);
+        }
 
         findStore.update(dto.getName(), openTime, closeTime, dto.getMinimumOrderPrice(), status);
         return StoreUpdateResponse.of(findStore, findUser);
@@ -116,4 +127,5 @@ public class StoreService {
         store.delete();
         reviewDeleteService.delete(storeId);
     }
+
 }
