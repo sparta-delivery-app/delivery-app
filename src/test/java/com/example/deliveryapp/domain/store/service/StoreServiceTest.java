@@ -1,5 +1,6 @@
 package com.example.deliveryapp.domain.store.service;
 
+import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.store.dto.request.StoreSaveRequest;
@@ -10,6 +11,7 @@ import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
+import com.example.deliveryapp.domain.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -51,13 +53,13 @@ class StoreServiceTest {
                 10000L,
                 "OPEN"
         );
-        AuthUser authUser = new AuthUser(userId, "email", UserRole.OWNER);
-
+        AuthUser authUser = new AuthUser(userId, "email", "name", UserRole.OWNER);
+        User user = new User(String.valueOf(authUser.getId()), authUser.getEmail(), authUser.getName(), authUser.getUserRole());
         given(userRepository.findById(anyLong())).willReturn(Optional.empty());
 
         // when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            storeService.save(User.fromAuthUser(authUser), request);
+            storeService.save(user.getId(), request);
         });
 
         // then
@@ -75,8 +77,8 @@ class StoreServiceTest {
                 10000L,
                 "OPEN"
         );
-        AuthUser authUser = new AuthUser(userId, "email", UserRole.OWNER);
-        User user = User.fromAuthUser(authUser);
+        AuthUser authUser = new AuthUser(userId, "email", "name", UserRole.OWNER);
+        User user = new User(String.valueOf(authUser.getId()), authUser.getEmail(), authUser.getName(), authUser.getUserRole());
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
         LocalTime openTime = LocalTime.parse(request.getOpenTime(), formatter);
