@@ -12,10 +12,15 @@ import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
+import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -45,5 +50,30 @@ public class OrderService {
         orderMenuRepository.save(orderMenu);
 
         return new OrderResponse(order, orderMenu);
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderResponse> getOrdersByUserId(Long userId) {
+        List<Order> orderList = orderRepository.findOrdersByUserId(userId);
+
+        return orderList.stream()
+                .map(order->{
+                    OrderMenu orderMenu = orderMenuRepository.findByOrderId(order.getId());
+                    return new OrderResponse(order,orderMenu);
+                }).collect(toList());
+    }
+
+    @Transactional
+    public List<OrderResponse> getOrdersByStoreId(Long storeId, Long userId, UserRole userRole) {
+        if(!(UserRole.OWNER).equals(userRole)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+
+        List<Order> orderList = orderRepository.findOrdersByStoreId(storeId);
+        return orderList.stream()
+                .map(order->{
+                    OrderMenu orderMenu = orderMenuRepository.findByOrderId(order.getId());
+                    return new OrderResponse(order,orderMenu);
+                }).collect(toList());
     }
 }

@@ -24,7 +24,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "사용자를 찾을 수 없습니다"),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "USER002", "중복된 이메일입니다"),
     EMAIL_ALREADY_DELETED(HttpStatus.CONFLICT, "USER003", "이미 탈퇴한 이메일입니다"),
-    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "USER004", "유효하지 않은 UserRole"),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "USER004", "올바르지 않은 사용자 권한입니다"),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USER005", "유효하지 않은 토큰 값입니다"),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER006", "비밀번호가 올바르지 않습니다."),
     OWNER_ONLY_ACCESS(HttpStatus.FORBIDDEN, "USER007", "OWNER 권한이 필요합니다"),
