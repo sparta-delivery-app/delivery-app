@@ -7,13 +7,13 @@ import java.util.List;
 
 @Getter
 public class MenuPageResponse {
-    private final List<MenuResponse> content;
+    private final List<MenuResponseWithImageUrl> content;
     private final Integer currentPage;
     private final Integer totalPages;
     private final Long totalElements;
     private final Integer size;
 
-    public MenuPageResponse(Page<MenuResponse> page) {
+    public MenuPageResponse(Page<MenuResponseWithImageUrl> page) {
         this.content = page.getContent();
         this.currentPage = page.getNumber() + 1;
         this.totalPages = page.getTotalPages();

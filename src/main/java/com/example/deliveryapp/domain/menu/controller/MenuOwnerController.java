@@ -5,11 +5,13 @@ import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
 import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
+import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.service.MenuOwnerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,6 +48,27 @@ public class MenuOwnerController {
             @PathVariable Long menuId
     ) {
         menuOwnerService.deleteMenu(authUser.getId(), storeId, menuId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{menuId}/images")
+    public ResponseEntity<MenuResponseWithImageUrl> uploadMenuImage(
+            @Auth AuthUser authUser,
+            @PathVariable Long storeId,
+            @PathVariable Long menuId,
+            @RequestParam MultipartFile file
+    ) {
+        MenuResponseWithImageUrl response = menuOwnerService.uploadMenuImage(authUser.getId(), storeId, menuId, file);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{menuId}/images")
+    public ResponseEntity<Void> deleteMenuImage(
+            @Auth AuthUser authUser,
+            @PathVariable Long storeId,
+            @PathVariable Long menuId
+    ) {
+        menuOwnerService.deleteMenuImage(authUser.getId(), storeId, menuId);
         return ResponseEntity.ok().build();
     }
 }

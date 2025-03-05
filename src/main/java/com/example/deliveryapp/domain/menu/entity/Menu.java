@@ -23,19 +23,29 @@ public class Menu extends Timestamped {
     @Column(nullable = false)
     private Long price;
 
+    private String description;
+
+    private String imageUrl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
     @Builder
-    public Menu(String name, Long price, Store store) {
+    public Menu(String name, Long price, String description, Store store) {
         this.name = name;
         this.price = price;
+        this.description = description;
         this.store = store;
     }
 
-    public void update(String menuName, Long price) {
+    public void update(String menuName, Long price, String description) {
         this.name = menuName;
         this.price = price;
+        this.description = description;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

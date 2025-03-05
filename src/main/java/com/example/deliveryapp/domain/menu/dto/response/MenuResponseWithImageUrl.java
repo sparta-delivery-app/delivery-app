@@ -7,9 +7,10 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class MenuResponse {
+public class MenuResponseWithImageUrl {
     private final Long menuId;
     private final String menuName;
     private final Long price;
     private final String description;
+    private final String imageUrl;
 }

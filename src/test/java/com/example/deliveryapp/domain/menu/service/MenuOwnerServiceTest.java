@@ -1,10 +1,12 @@
 package com.example.deliveryapp.domain.menu.service;
 
+import com.example.deliveryapp.client.S3Service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
 import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
+import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
@@ -27,6 +29,9 @@ import static org.mockito.Mockito.*;
 class MenuOwnerServiceTest {
 
     @Mock
+    private S3Service s3Service;
+
+    @Mock
     private MenuRepository menuRepository;
 
     @Mock
@@ -45,7 +50,7 @@ class MenuOwnerServiceTest {
 
         @BeforeEach
         void setUp() {
-            request = new MenuSaveRequest("menu1", 15000L);
+            request = new MenuSaveRequest("menu1", 15000L, "description");
         }
 
         @Test
@@ -89,6 +94,7 @@ class MenuOwnerServiceTest {
             assertNotNull(response);
             assertEquals(request.getMenuName(), response.getMenuName());
             assertEquals(request.getPrice(), response.getPrice());
+            assertEquals(request.getDescription(), response.getDescription());
         }
     }
 
@@ -101,7 +107,7 @@ class MenuOwnerServiceTest {
 
         @BeforeEach
         void setUp() {
-            request = new MenuUpdateRequest("menu1", 15000L);
+            request = new MenuUpdateRequest("menu1", 15000L, "description");
         }
 
         @Test
@@ -166,6 +172,7 @@ class MenuOwnerServiceTest {
             assertEquals(mockMenu.getId(), response.getMenuId());
             assertEquals(request.getMenuName(), response.getMenuName());
             assertEquals(request.getPrice(), response.getPrice());
+            assertEquals(request.getDescription(), response.getDescription());
         }
     }
 
@@ -231,6 +238,146 @@ class MenuOwnerServiceTest {
 
             // then
             verify(mockMenu, times(1)).setDeletedAt(any(LocalDateTime.class));
+        }
+    }
+
+    @Nested
+    @Order(4)
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class UploadMenuImageTests {
+
+        @Test
+        @Order(1)
+        void 메뉴이미지업로드_가게_주인_아님_실패() {
+            // given
+            Long userId = 1L;
+            Long storeOwnerId = 2L;
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(storeOwnerId);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.uploadMenuImage(userId, 1L, 1L, null)
+            );
+            assertEquals(ErrorCode.NOT_STORE_OWNER, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(2)
+        void 메뉴이미지업로드_가게_다름_실패() {
+            // given
+            Long userId = 1L;
+            Long storeId = 1L;
+
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
+
+            Store anotherStore = mock(Store.class);
+            when(anotherStore.getId()).thenReturn(2L);
+
+            Menu mockMenu = mock(Menu.class);
+            when(mockMenu.getStore()).thenReturn(anotherStore);
+            when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.uploadMenuImage(userId, storeId, 1L, null)
+            );
+            assertEquals(ErrorCode.NOT_STORE_MENU, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(3)
+        void 메뉴이미지업로드_성공() {
+            // given
+            Long userId = 1L;
+            String newImageUrl = "newImageUrl";
+            String signedUrl = "signedUrl";
+
+            Store mockStore = mock(Store.class);
+            when(mockStore.getId()).thenReturn(1L);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
+
+            Menu menu = Menu.builder().store(mockStore).build();
+            menu.setImageUrl("unsignedUrl");
+            when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(menu);
+
+            doNothing().when(s3Service).deleteImage(any(), anyString());
+            when(s3Service.uploadImage(any(), any())).thenReturn(newImageUrl);
+            when(s3Service.createSignedUrl(any(), eq(newImageUrl))).thenReturn(signedUrl);
+
+            // when
+            MenuResponseWithImageUrl response = menuOwnerService.uploadMenuImage(userId, mockStore.getId(), 1L, null);
+
+            // then
+            assertNotNull(response);
+            assertEquals(signedUrl, response.getImageUrl());
+        }
+    }
+
+    @Nested
+    @Order(5)
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+    class DeleteMenuImageTests {
+
+        @Test
+        @Order(1)
+        void 메뉴이미지삭제_가게_주인_아님_실패() {
+            // given
+            Long userId = 1L;
+            Long storeOwnerId = 2L;
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(storeOwnerId);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.deleteMenuImage(userId, 1L, 1L)
+            );
+            assertEquals(ErrorCode.NOT_STORE_OWNER, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(2)
+        void 메뉴이미지삭제_가게_다름_실패() {
+            // given
+            Long userId = 1L;
+            Long storeId = 1L;
+
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
+
+            Store anotherStore = mock(Store.class);
+            when(anotherStore.getId()).thenReturn(2L);
+
+            Menu mockMenu = mock(Menu.class);
+            when(mockMenu.getStore()).thenReturn(anotherStore);
+            when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(mockMenu);
+
+            // when & then
+            CustomException thrown = assertThrows(CustomException.class,
+                    () -> menuOwnerService.deleteMenu(userId, storeId, 1L)
+            );
+            assertEquals(ErrorCode.NOT_STORE_MENU, thrown.getErrorCode());
+        }
+
+        @Test
+        @Order(3)
+        void 메뉴이미지삭제_성공() {
+            // given
+            Long userId = 1L;
+
+            Store mockStore = mock(Store.class);
+            when(mockStore.getId()).thenReturn(1L);
+            when(storeRepository.findOwnerIdByStoreIdOrThrow(anyLong())).thenReturn(userId);
+
+            Menu menu = Menu.builder().store(mockStore).build();
+            menu.setImageUrl("unsignedUrl");
+            when(menuRepository.findActiveMenuByIdOrThrow(anyLong())).thenReturn(menu);
+
+            doNothing().when(s3Service).deleteImage(any(), anyString());
+
+            // when
+            menuOwnerService.deleteMenuImage(userId, mockStore.getId(), 1L);
+
+            // then
+            verify(s3Service, times(1)).deleteImage(any(), anyString());
+            assertNull(menu.getImageUrl());
         }
     }
 }

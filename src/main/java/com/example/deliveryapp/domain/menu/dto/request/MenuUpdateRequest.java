@@ -15,4 +15,7 @@ public class MenuUpdateRequest {
 
     @NotNull
     private final Long price;
+
+    @Size(max = 255)
+    private final String description;
 }
