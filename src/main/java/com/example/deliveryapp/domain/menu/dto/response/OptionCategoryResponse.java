@@ -14,4 +14,12 @@ public class OptionCategoryResponse {
     private final Boolean isMultiple;
     private final Integer maxOptions;
     private final List<OptionItemResponse> optionItems;
+
+    @Getter
+    @AllArgsConstructor
+    public static class OptionItemResponse {
+        private final Long optionItemId;
+        private final String optionItemName;
+        private final Long additionalPrice;
+    }
 }

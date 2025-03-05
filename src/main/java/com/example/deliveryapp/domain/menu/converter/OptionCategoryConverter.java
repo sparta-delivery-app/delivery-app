@@ -3,10 +3,12 @@ package com.example.deliveryapp.domain.menu.converter;
 import com.example.deliveryapp.domain.menu.dto.request.OptionCategoryRequest;
 import com.example.deliveryapp.domain.menu.dto.request.OptionItemRequest;
 import com.example.deliveryapp.domain.menu.dto.response.OptionCategoryResponse;
-import com.example.deliveryapp.domain.menu.dto.response.OptionItemResponse;
+import com.example.deliveryapp.domain.menu.dto.response.OptionCategoryResponse.OptionItemResponse;
+import com.example.deliveryapp.domain.menu.dto.response.OptionCategoryPageResponse;
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.entity.OptionCategory;
 import com.example.deliveryapp.domain.menu.entity.OptionItem;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -54,6 +56,20 @@ public class OptionCategoryConverter {
                 optionItem.getId(),
                 optionItem.getName(),
                 optionItem.getAdditionalPrice()
+        );
+    }
+
+    public static OptionCategoryPageResponse toResponse(Page<OptionCategory> optionCategoryPage) {
+        List<OptionCategoryResponse> optionCategoryResponses = optionCategoryPage.getContent().stream()
+                .map(OptionCategoryConverter::toResponse)
+                .toList();
+
+        return new OptionCategoryPageResponse(
+                optionCategoryResponses,
+                optionCategoryPage.getNumber() + 1,
+                optionCategoryPage.getTotalPages(),
+                optionCategoryPage.getTotalElements(),
+                optionCategoryPage.getSize()
         );
     }
 }
