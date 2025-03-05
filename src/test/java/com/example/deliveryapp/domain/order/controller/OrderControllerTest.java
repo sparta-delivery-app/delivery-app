@@ -11,7 +11,6 @@ import com.example.deliveryapp.domain.order.service.OrderService;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -160,7 +159,7 @@ public class OrderControllerTest {
 
         OrderStateUpdateRequest stateUpdateRequest = new OrderStateUpdateRequest(OrderState.ACCEPTED);
 
-        doNothing().when(orderService).updateOrderState(anyLong(),anyLong(),any(OrderStateUpdateRequest.class));
+        doNothing().when(orderService).updateOrderState(anyLong(), anyLong(), any(OrderStateUpdateRequest.class));
 
         mockMvc.perform(patch("/orders/{orderId}", orderId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)

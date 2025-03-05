@@ -98,12 +98,12 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDeleteRequest))
                         .with(request -> {
-                    request.setAttribute("userId", userId);
-                    request.setAttribute("email","ema@ema.com");
-                    request.setAttribute("name","name");
-                    request.setAttribute("userRole","USER");
-                    return request;
-                }))
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("email", "ema@ema.com");
+                            request.setAttribute("name", "name");
+                            request.setAttribute("userRole", "USER");
+                            return request;
+                        }))
                 .andExpect(status().isOk());
     }
 }
