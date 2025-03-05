@@ -13,7 +13,6 @@ import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
-import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,10 +45,7 @@ public class OrderService {
 
         boolean isClosedToday = nowTime.isBefore(openTime) || nowTime.isAfter(closeTime);
 
-        // close 시간이 자정 넘는 경우 (ex: 술집?)
-        boolean isClosedNextDay = closeTime.isBefore(openTime) && nowTime.isBefore(openTime) && nowTime.isAfter(closeTime);
-
-        if (isClosedNextDay || isClosedToday) {
+        if (isClosedToday) {
             throw new CustomException(ErrorCode.ORDER_CLOSED);
         }
 
@@ -87,6 +83,7 @@ public class OrderService {
         Store store = storeRepository.findById(storeId).orElseThrow(
                 () -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
+        // 해당 가게 사장이 아닌 경우
         if (!userId.equals(store.getUser().getId())) {
             throw new CustomException(ErrorCode.INVALID_USER_ROLE);
         }
@@ -129,8 +126,6 @@ public class OrderService {
                 validateCompleteDelivery(userId, order, storeOwnerId);
                 order.setOrderState(OrderState.COMPLETED);
                 break;
-            default:
-                throw new CustomException(ErrorCode.INVALID_REQUEST);
         }
     }
 
