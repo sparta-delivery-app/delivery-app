@@ -9,6 +9,7 @@ import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.order.service.OrderService;
 import com.example.deliveryapp.domain.store.entity.Store;
+import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,7 +50,8 @@ public class OrderControllerTest {
         Long userId = 1L;
         User user = new User("em@em.com", "pw", "name", UserRole.USER);
         Store store = new Store(
-                "name", LocalTime.of(9, 0), LocalTime.of(22, 0), 1000L, user);
+                "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                1000L,StoreStatus.OPEN, user);
 
         String bearerToken = "bearerToken";
 
@@ -82,7 +84,8 @@ public class OrderControllerTest {
         Long userId = 1L;
         User user = new User("em@em.com", "pw", "name", UserRole.USER);
         Store store = new Store(
-                "name", LocalTime.of(9, 0), LocalTime.of(22, 0), 1000L, user);
+                "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                1000L, StoreStatus.OPEN, user);
 
         String bearerToken = "bearerToken";
 
@@ -119,7 +122,8 @@ public class OrderControllerTest {
 
         Long storeId = 1L;
         Store store = new Store(
-                "name", LocalTime.of(9, 0), LocalTime.of(22, 0), 1000L, user1);
+                "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                1000L, StoreStatus.OPEN, user1);
         ReflectionTestUtils.setField(store, "id", storeId);
 
         String bearerToken = "bearerToken";
