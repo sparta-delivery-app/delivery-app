@@ -56,8 +56,8 @@ class MenuServiceTest {
             // given
             Integer page = 1, size = 10;
             List<MenuResponse> menuResponseList = List.of(
-                    new MenuResponse(1L, "menu1", 5000L),
-                    new MenuResponse(2L, "menu2", 15000L)
+                    new MenuResponse(1L, "menu1", 5000L, "description1", null),
+                    new MenuResponse(2L, "menu2", 15000L, "description2", null)
             );
             Pageable pageable = PageRequest.of(page - 1, size, Sort.by("name").ascending());
             Page<MenuResponse> menuPage = new PageImpl<>(menuResponseList, pageable, menuResponseList.size());

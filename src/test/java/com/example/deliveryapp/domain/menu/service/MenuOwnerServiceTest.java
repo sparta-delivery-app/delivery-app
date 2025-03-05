@@ -45,7 +45,7 @@ class MenuOwnerServiceTest {
 
         @BeforeEach
         void setUp() {
-            request = new MenuSaveRequest("menu1", 15000L);
+            request = new MenuSaveRequest("menu1", 15000L, "description");
         }
 
         @Test
@@ -101,7 +101,7 @@ class MenuOwnerServiceTest {
 
         @BeforeEach
         void setUp() {
-            request = new MenuUpdateRequest("menu1", 15000L);
+            request = new MenuUpdateRequest("menu1", 15000L, "description");
         }
 
         @Test

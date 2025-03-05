@@ -30,12 +30,19 @@ public class MenuOwnerService {
         Menu menu = Menu.builder()
                 .name(request.getMenuName())
                 .price(request.getPrice())
+                .description(request.getDescription())
                 .store(store)
                 .build();
 
         menuRepository.save(menu);
 
-        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice());
+        return MenuResponse.builder()
+                .menuId(menu.getId())
+                .menuName(menu.getName())
+                .price(menu.getPrice())
+                .description(menu.getDescription())
+                .imageUrl(menu.getImageUrl())
+                .build();
     }
 
     public MenuResponse updateMenu(Long userId, Long storeId, Long menuId, MenuUpdateRequest request) {
@@ -45,9 +52,15 @@ public class MenuOwnerService {
         Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
         validateMenuBelongsToStore(menu.getStore().getId(), storeId);
 
-        menu.update(request.getMenuName(), request.getPrice());
+        menu.update(request.getMenuName(), request.getPrice(), request.getDescription());
 
-        return new MenuResponse(menu.getId(), menu.getName(), menu.getPrice());
+        return MenuResponse.builder()
+                .menuId(menu.getId())
+                .menuName(menu.getName())
+                .price(menu.getPrice())
+                .description(menu.getDescription())
+                .imageUrl(menu.getImageUrl())
+                .build();
     }
 
     public void deleteMenu(Long userId, Long storeId, Long menuId) {

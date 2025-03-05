@@ -15,4 +15,7 @@ public class MenuSaveRequest {
 
     @NotNull
     private final Long price;
+
+    @Size(max = 255)
+    private final String description;
 }

@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface MenuRepository extends JpaRepository<Menu, Long> {
     Optional<Menu> findByIdAndDeletedAtIsNull(Long id);
 
-    @Query("SELECT new com.example.deliveryapp.domain.menu.dto.response.MenuResponse(m.id, m.name, m.price) " +
+    @Query("SELECT new com.example.deliveryapp.domain.menu.dto.response.MenuResponse(m.id, m.name, m.price, m.description, m.imageUrl) " +
             "FROM Menu m " +
             "WHERE m.store.id = :storeId AND m.deletedAt IS NULL")
     Page<MenuResponse> findAllByStoreId(@Param("storeId") Long storeId, Pageable pageable);
