@@ -24,9 +24,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER001", "사용자를 찾을 수 없습니다"),
     DUPLICATE_EMAIL(HttpStatus.BAD_REQUEST, "USER002", "중복된 이메일입니다"),
     EMAIL_ALREADY_DELETED(HttpStatus.CONFLICT, "USER003", "이미 탈퇴한 이메일입니다"),
-    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "USER004", "유효하지 않은 UserRole"),
+    INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "USER004", "올바르지 않은 사용자 권한입니다"),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USER005", "유효하지 않은 토큰 값입니다"),
-    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER006", "비밀번호가 올바르지 않습니다."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER006", "비밀번호가 올바르지 않습니다"),
     OWNER_ONLY_ACCESS(HttpStatus.FORBIDDEN, "USER007", "OWNER 권한이 필요합니다"),
 
     // STORE
@@ -36,7 +36,17 @@ public enum ErrorCode {
     // MENU
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "MENU001", "메뉴를 찾을 수 없습니다"),
     NOT_STORE_MENU(HttpStatus.BAD_REQUEST, "MENU002", "해당 가게에 속한 메뉴가 아닙니다"),
-    ;
+
+    // ORDER
+    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER001", "주문 정보를 찾을 수 없습니다"),
+    ORDER_CANNOT_BE_ACCEPTED(HttpStatus.BAD_REQUEST, "ORDER002", "대기 중인 주문만 수락할 수 있습니다"),
+    ORDER_CANNOT_BE_REJECTED(HttpStatus.BAD_REQUEST, "ORDER003", "대기 중인 주문만 거절할 수 있습니다"),
+    ORDER_CANNOT_BE_DELIVERY(HttpStatus.BAD_REQUEST, "ORDER004", "수락된 주문만 배달을 시작할 수 있습니다"),
+    ORDER_CANNOT_BE_COMPLETED(HttpStatus.BAD_REQUEST, "ORDER005", "배달 시작된 주문만 배달 완료 처리할 수 있습니다"),
+    ORDER_CANNOT_BE_CANCELED(HttpStatus.BAD_REQUEST, "ORDER006", "배달이 완료되었거나 진행 중인 주문은 취소할 수 없습니다"),
+    ORDER_CLOSED(HttpStatus.BAD_REQUEST, "ORDER007", "가게 운영 시간이 아닙니다"),
+    ORDER_TOO_CHEAP(HttpStatus.BAD_REQUEST, "ORDER008", "최소 주문 금액을 만족해야 주문이 가능합니다");
+
 
     private final HttpStatus status;
     private final String code;
