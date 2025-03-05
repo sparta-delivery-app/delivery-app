@@ -104,6 +104,27 @@ public class MenuOwnerService {
                 .build();
     }
 
+    public MenuResponse deleteMenuImage(Long userId, Long storeId, Long menuId) {
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
+        validateStoreOwner(storeOwnerId, userId);
+
+        Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
+        validateMenuBelongsToStore(menu.getStore().getId(), storeId);
+
+        if (menu.getImageUrl() != null) {
+            s3Service.deleteImage(folder, menu.getImageUrl());
+            menu.setImageUrl(null);
+        }
+
+        return MenuResponse.builder()
+                .menuId(menu.getId())
+                .menuName(menu.getName())
+                .price(menu.getPrice())
+                .description(menu.getDescription())
+                .imageUrl(menu.getImageUrl())
+                .build();
+    }
+
     private static void validateStoreOwner(Long storeOwnerId, Long currentUserId) {
         if (!storeOwnerId.equals(currentUserId)) {
             throw new CustomException(ErrorCode.NOT_STORE_OWNER);

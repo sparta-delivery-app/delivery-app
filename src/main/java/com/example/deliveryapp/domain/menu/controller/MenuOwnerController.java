@@ -60,4 +60,14 @@ public class MenuOwnerController {
         MenuResponse response = menuOwnerService.uploadMenuImage(authUser.getId(), storeId, menuId, file);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{menuId}/images")
+    public ResponseEntity<MenuResponse> deleteMenuImage(
+            @Auth AuthUser authUser,
+            @PathVariable Long storeId,
+            @PathVariable Long menuId
+    ) {
+        MenuResponse response = menuOwnerService.deleteMenuImage(authUser.getId(), storeId, menuId);
+        return ResponseEntity.ok(response);
+    }
 }
