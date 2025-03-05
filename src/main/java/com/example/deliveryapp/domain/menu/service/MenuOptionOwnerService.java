@@ -46,6 +46,13 @@ public class MenuOptionOwnerService {
         return OptionCategoryConverter.toResponse(newOptionCategory);
     }
 
+    public void deleteMenuOption(Long userId, Long menuId, Long optionCategoryId) {
+        validateMenuOwner(userId, menuId);
+
+        OptionCategory optionCategory = optionCategoryRepository.findByIdAndMenuIdOrThrow(optionCategoryId, menuId);
+        optionCategoryRepository.delete(optionCategory);
+    }
+
     private void validateMenuOwner(Long userId, Long menuId) {
         Long ownerId = menuRepository.findOwnerIdByMenuIdOrThrow(menuId);
         if (!ownerId.equals(userId)) {

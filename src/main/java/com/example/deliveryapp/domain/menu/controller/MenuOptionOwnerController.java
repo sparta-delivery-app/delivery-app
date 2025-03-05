@@ -37,4 +37,14 @@ public class MenuOptionOwnerController {
         OptionCategoryResponse response = menuOptionOwnerService.updateMenuOption(authUser.getId(), menuId, optionCategoryId, request);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("{optionCategoryId}")
+    public ResponseEntity<Void> deleteMenuOption(
+            @Auth AuthUser authUser,
+            @PathVariable Long menuId,
+            @PathVariable Long optionCategoryId
+    ) {
+        menuOptionOwnerService.deleteMenuOption(authUser.getId(), menuId, optionCategoryId);
+        return ResponseEntity.ok().build();
+    }
 }
