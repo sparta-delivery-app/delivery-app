@@ -28,16 +28,16 @@ public class ReviewService {
     public ReviewResponseDto createReview(ReviewRequestDto reviewRequestDto) {
         // 주문을 조회하여 배달 완료 상태인지 확인
         Order order = orderRepository.findById(reviewRequestDto.getOrderId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new RuntimeException("주문을 찾을 수 없습니다."));
 
         // 배달 완료 상태가 아니면 예외 처리
         if (order.getOrderState() != OrderState.COMPLETED) {
-            throw new RuntimeException("Order must be delivered before reviewing");
+            throw new RuntimeException("배달 완료되지 않았습니다.");
         }
 
         // 사용자 정보를 가져오기
         User user = userRepository.findById(order.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         // Review 객체 생성
         Review review = Review.builder()
