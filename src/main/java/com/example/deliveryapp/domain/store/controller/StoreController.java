@@ -29,12 +29,12 @@ public class StoreController {
         return ResponseEntity.ok(storeService.save(userId, dto));
     }
 
-    // 가게 페이지 API
-    @GetMapping("/page")
-    public ResponseEntity<Page<StorePageResponse>> findAllPage(@PageableDefault(size =10) Pageable pageable) {
-        Page<StorePageResponse> result = storeService.findAllPage(pageable);
-        return ResponseEntity.ok(result);
-    }
+//    // 가게 페이지 API
+//    @GetMapping("/page")
+//    public ResponseEntity<Page<StorePageResponse>> findAllPage(@PageableDefault(size =10) Pageable pageable) {
+//        Page<StorePageResponse> result = storeService.findAllPage(pageable);
+//        return ResponseEntity.ok(result);
+//    }
 
     // 가게 단건 조회
     @GetMapping("/stores/{storeId}")
