@@ -44,6 +44,9 @@ public enum ErrorCode {
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "MENU001", "메뉴를 찾을 수 없습니다"),
     NOT_STORE_MENU(HttpStatus.BAD_REQUEST, "MENU002", "해당 가게에 속한 메뉴가 아닙니다"),
 
+    // MENU OPTION
+    OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "OPTION001", "옵션을 찾을 수 없습니다"),
+
     // FILE
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "FILE001", "빈 파일은 업로드할 수 없습니다"),
     INVALID_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "FILE002", "이미지 파일만 업로드할 수 있습니다"),

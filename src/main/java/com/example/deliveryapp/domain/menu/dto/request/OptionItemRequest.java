@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class OptionItemSaveRequest {
+public class OptionItemRequest {
     @NotBlank
     private final String optionItemName;
     @NotNull

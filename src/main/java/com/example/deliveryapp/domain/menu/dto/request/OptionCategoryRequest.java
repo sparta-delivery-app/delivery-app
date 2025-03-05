@@ -12,7 +12,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class OptionCategorySaveRequest {
+public class OptionCategoryRequest {
     @NotBlank
     private final String optionCategoryName;
     @NotNull
@@ -23,5 +23,5 @@ public class OptionCategorySaveRequest {
     private final Integer maxOptions;
     @NotEmpty
     @Valid
-    private final List<OptionItemSaveRequest> optionItems;
+    private final List<OptionItemRequest> optionItems;
 }

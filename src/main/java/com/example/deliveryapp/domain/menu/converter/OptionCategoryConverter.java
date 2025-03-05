@@ -1,7 +1,7 @@
 package com.example.deliveryapp.domain.menu.converter;
 
-import com.example.deliveryapp.domain.menu.dto.request.OptionCategorySaveRequest;
-import com.example.deliveryapp.domain.menu.dto.request.OptionItemSaveRequest;
+import com.example.deliveryapp.domain.menu.dto.request.OptionCategoryRequest;
+import com.example.deliveryapp.domain.menu.dto.request.OptionItemRequest;
 import com.example.deliveryapp.domain.menu.dto.response.OptionCategoryResponse;
 import com.example.deliveryapp.domain.menu.dto.response.OptionItemResponse;
 import com.example.deliveryapp.domain.menu.entity.Menu;
@@ -11,7 +11,7 @@ import com.example.deliveryapp.domain.menu.entity.OptionItem;
 import java.util.List;
 
 public class OptionCategoryConverter {
-    public static OptionCategory toEntity(OptionCategorySaveRequest request, Menu menu) {
+    public static OptionCategory toEntity(OptionCategoryRequest request, Menu menu) {
         OptionCategory optionCategory = OptionCategory.builder()
                 .name(request.getOptionCategoryName())
                 .isRequired(request.getIsRequired())
@@ -27,7 +27,7 @@ public class OptionCategoryConverter {
         return optionCategory;
     }
 
-    public static OptionItem toEntity(OptionItemSaveRequest request) {
+    public static OptionItem toEntity(OptionItemRequest request) {
         return OptionItem.builder()
                 .name(request.getOptionItemName())
                 .additionalPrice(request.getAdditionalPrice())
