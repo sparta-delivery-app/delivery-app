@@ -9,6 +9,7 @@ import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
+import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
@@ -70,7 +71,7 @@ public class CartServiceTest {
             User user = new User("em@em.com", "pw", "name", UserRole.USER);
             Store store = new Store(
                     "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, user);
+                    1000L, StoreStatus.OPEN, user);
 
             given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
             given(menuRepository.findById(anyLong())).willReturn(Optional.empty());
@@ -87,8 +88,8 @@ public class CartServiceTest {
             User user = new User("em@em.com", "pw", "name", UserRole.USER);
             Store store = new Store(
                     "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, user);
-            Menu menu = new Menu("name",1000L, store);
+                    1000L, StoreStatus.OPEN,user);
+            Menu menu = new Menu("name",1000L, "description", store);
 
             given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
             given(menuRepository.findById(anyLong())).willReturn(Optional.of(menu));
@@ -108,15 +109,15 @@ public class CartServiceTest {
             User user = new User("em@em.com", "pw", "name", UserRole.USER);
             Store store = new Store(
                     "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, user);
+                    1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store,"id",storeId);
 
             Store store2 = new Store(
                     "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, user);
+                    1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store,"id",2L);
 
-            Menu menu = new Menu("name",1000L, store);
+            Menu menu = new Menu("name",1000L, "description", store);
 
             Order order = new Order(user, store2, OrderState.CART);
 
@@ -139,8 +140,8 @@ public class CartServiceTest {
             User user = new User("em@em.com", "pw", "name", UserRole.USER);
             Store store = new Store(
                     "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, user);
-            Menu menu = new Menu("name",1000L, store);
+                    1000L, StoreStatus.OPEN, user);
+            Menu menu = new Menu("name",1000L, "description", store);
 
             given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
             given(menuRepository.findById(anyLong())).willReturn(Optional.of(menu));
@@ -159,7 +160,7 @@ public class CartServiceTest {
         Long userId1 = 1L;
         User user1 = new User("em@em.com", "pw", "name", UserRole.USER);
         Store store1 = new Store("name", LocalTime.of(9, 0), LocalTime.of(22, 0),
-                1000L, user1);
+                1000L, StoreStatus.OPEN, user1);
         Order order1 = new Order(user1, store1, OrderState.CART);
         order1.setId(1L);
         order1.setUpdatedAt(LocalDateTime.now().minusHours(25));
@@ -167,7 +168,7 @@ public class CartServiceTest {
         Long userId2 = 2L;
         User user2 = new User("em2@em.com", "pw", "name", UserRole.USER);
         Store store2 = new Store("name2", LocalTime.of(9, 0), LocalTime.of(22, 0),
-                1000L, user2);
+                1000L, StoreStatus.OPEN, user2);
         Order order2 = new Order(user2, store2, OrderState.CART);
         order2.setId(2L);
         order2.setUpdatedAt(LocalDateTime.now().minusHours(5));

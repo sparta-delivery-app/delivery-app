@@ -94,8 +94,8 @@ public class OrderControllerTest {
         User user = new User("em@em.com", "pw", "name", UserRole.USER);
         Store store = new Store(
                 "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                1000L, user);
-        Menu menu = new Menu("name",1000L, store);
+                1000L, StoreStatus.OPEN, user);
+        Menu menu = new Menu("name",1000L, "description", store);
 
         doNothing().when(cartService).addCart(userId,menuId);
 
