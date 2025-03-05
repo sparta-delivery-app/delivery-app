@@ -1,13 +1,12 @@
 package com.example.deliveryapp.domain.order.entity;
 
+import com.example.deliveryapp.domain.common.entity.Timestamped;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "order_menus")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderMenu {
@@ -16,7 +15,7 @@ public class OrderMenu {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
