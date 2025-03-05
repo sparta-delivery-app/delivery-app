@@ -1,4 +1,4 @@
-package com.example.deliveryapp.config;
+package com.example.deliveryapp.domain.order.aop;
 
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Aspect
 @Component
 @RequiredArgsConstructor
-public class LoggingAspect {
+public class OrderLoggingAspect {
 
     private final OrderRepository orderRepository;
 
