@@ -27,10 +27,15 @@ public enum ErrorCode {
     INVALID_USER_ROLE(HttpStatus.BAD_REQUEST, "USER004", "유효하지 않은 UserRole"),
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USER005", "유효하지 않은 토큰 값입니다"),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER006", "비밀번호가 올바르지 않습니다."),
-
+    OWNER_ONLY_ACCESS(HttpStatus.FORBIDDEN, "USER007", "OWNER 권한이 필요합니다"),
 
     // STORE
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORE001", "가게를 찾을 수 없습니다"),
+    NOT_STORE_OWNER(HttpStatus.FORBIDDEN, "STORE002", "해당 가게에 대한 권한이 없습니다"),
+
+    // MENU
+    MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "MENU001", "메뉴를 찾을 수 없습니다"),
+    NOT_STORE_MENU(HttpStatus.BAD_REQUEST, "MENU002", "해당 가게에 속한 메뉴가 아닙니다"),
     ;
 
     private final HttpStatus status;
