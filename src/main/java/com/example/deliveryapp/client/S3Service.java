@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.UUID;
 
 @Slf4j
@@ -24,7 +25,7 @@ public class S3Service {
 
     private final S3Operations s3Operations;
 
-    public String uploadImage(MultipartFile file, String folder) {
+    public String uploadImage(String folder, MultipartFile file) {
         validateImage(file);
 
         String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
@@ -46,6 +47,11 @@ public class S3Service {
     public void deleteImage(String folder, String fileName) {
         String fullName = folder + "/" + fileName;
         s3Operations.deleteObject(bucket, fullName);
+    }
+
+    public String createSignedUrl(String folder, String fileName) {
+        String fullName = folder + "/" + fileName;
+        return s3Operations.createSignedGetURL(bucket, fullName, Duration.ofMinutes(10)).toString();
     }
 
     private static void validateImage(MultipartFile image) {

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class MenuController {
 
     private static final String DEFAULT_SIZE = "10";
+
     private final MenuService menuService;
 
     @GetMapping

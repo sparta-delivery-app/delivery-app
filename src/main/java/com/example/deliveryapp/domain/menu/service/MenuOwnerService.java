@@ -6,6 +6,7 @@ import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
 import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
+import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
@@ -24,7 +25,7 @@ import java.time.LocalDateTime;
 public class MenuOwnerService {
 
     @Value("${s3.folder.menu}")
-    private String folder;
+    private String MENU;
 
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
@@ -48,7 +49,6 @@ public class MenuOwnerService {
                 .menuName(menu.getName())
                 .price(menu.getPrice())
                 .description(menu.getDescription())
-                .imageUrl(menu.getImageUrl())
                 .build();
     }
 
@@ -66,7 +66,6 @@ public class MenuOwnerService {
                 .menuName(menu.getName())
                 .price(menu.getPrice())
                 .description(menu.getDescription())
-                .imageUrl(menu.getImageUrl())
                 .build();
     }
 
@@ -80,7 +79,7 @@ public class MenuOwnerService {
         menu.setDeletedAt(LocalDateTime.now());
     }
 
-    public MenuResponse uploadMenuImage(Long userId, Long storeId, Long menuId, MultipartFile file) {
+    public MenuResponseWithImageUrl uploadMenuImage(Long userId, Long storeId, Long menuId, MultipartFile file) {
         Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
         validateStoreOwner(storeOwnerId, userId);
 
@@ -89,22 +88,22 @@ public class MenuOwnerService {
 
         // 기존 이미지 삭제
         if (menu.getImageUrl() != null) {
-            s3Service.deleteImage(folder, menu.getImageUrl());
+            s3Service.deleteImage(MENU, menu.getImageUrl());
         }
 
-        String imageUrl = s3Service.uploadImage(file, folder);
+        String imageUrl = s3Service.uploadImage(MENU, file);
         menu.setImageUrl(imageUrl);
 
-        return MenuResponse.builder()
+        return MenuResponseWithImageUrl.builder()
                 .menuId(menu.getId())
                 .menuName(menu.getName())
                 .price(menu.getPrice())
                 .description(menu.getDescription())
-                .imageUrl(menu.getImageUrl())
+                .imageUrl(s3Service.createSignedUrl(MENU, menu.getImageUrl()))
                 .build();
     }
 
-    public MenuResponse deleteMenuImage(Long userId, Long storeId, Long menuId) {
+    public void deleteMenuImage(Long userId, Long storeId, Long menuId) {
         Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
         validateStoreOwner(storeOwnerId, userId);
 
@@ -112,17 +111,9 @@ public class MenuOwnerService {
         validateMenuBelongsToStore(menu.getStore().getId(), storeId);
 
         if (menu.getImageUrl() != null) {
-            s3Service.deleteImage(folder, menu.getImageUrl());
+            s3Service.deleteImage(MENU, menu.getImageUrl());
             menu.setImageUrl(null);
         }
-
-        return MenuResponse.builder()
-                .menuId(menu.getId())
-                .menuName(menu.getName())
-                .price(menu.getPrice())
-                .description(menu.getDescription())
-                .imageUrl(menu.getImageUrl())
-                .build();
     }
 
     private static void validateStoreOwner(Long storeOwnerId, Long currentUserId) {

@@ -5,6 +5,7 @@ import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
 import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
+import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.service.MenuOwnerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,23 +52,23 @@ public class MenuOwnerController {
     }
 
     @PutMapping("/{menuId}/images")
-    public ResponseEntity<MenuResponse> updateMenuImage(
+    public ResponseEntity<MenuResponseWithImageUrl> uploadMenuImage(
             @Auth AuthUser authUser,
             @PathVariable Long storeId,
             @PathVariable Long menuId,
             @RequestParam MultipartFile file
     ) {
-        MenuResponse response = menuOwnerService.uploadMenuImage(authUser.getId(), storeId, menuId, file);
+        MenuResponseWithImageUrl response = menuOwnerService.uploadMenuImage(authUser.getId(), storeId, menuId, file);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{menuId}/images")
-    public ResponseEntity<MenuResponse> deleteMenuImage(
+    public ResponseEntity<Void> deleteMenuImage(
             @Auth AuthUser authUser,
             @PathVariable Long storeId,
             @PathVariable Long menuId
     ) {
-        MenuResponse response = menuOwnerService.deleteMenuImage(authUser.getId(), storeId, menuId);
-        return ResponseEntity.ok(response);
+        menuOwnerService.deleteMenuImage(authUser.getId(), storeId, menuId);
+        return ResponseEntity.ok().build();
     }
 }
