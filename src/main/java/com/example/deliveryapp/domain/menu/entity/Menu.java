@@ -44,4 +44,8 @@ public class Menu extends Timestamped {
         this.price = price;
         this.description = description;
     }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }

@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,5 +48,16 @@ public class MenuOwnerController {
     ) {
         menuOwnerService.deleteMenu(authUser.getId(), storeId, menuId);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{menuId}/images")
+    public ResponseEntity<MenuResponse> updateMenuImage(
+            @Auth AuthUser authUser,
+            @PathVariable Long storeId,
+            @PathVariable Long menuId,
+            @RequestParam MultipartFile file
+    ) {
+        MenuResponse response = menuOwnerService.uploadMenuImage(authUser.getId(), storeId, menuId, file);
+        return ResponseEntity.ok(response);
     }
 }

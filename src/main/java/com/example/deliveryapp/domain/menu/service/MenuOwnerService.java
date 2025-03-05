@@ -1,5 +1,6 @@
 package com.example.deliveryapp.domain.menu.service;
 
+import com.example.deliveryapp.client.S3Service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
@@ -10,8 +11,10 @@ import com.example.deliveryapp.domain.menu.repository.MenuRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -20,8 +23,12 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class MenuOwnerService {
 
+    @Value("${s3.folder.menu}")
+    private String folder;
+
     private final MenuRepository menuRepository;
     private final StoreRepository storeRepository;
+    private final S3Service s3Service;
 
     public MenuResponse saveMenu(Long userId, Long storeId, MenuSaveRequest request) {
         Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
@@ -71,6 +78,30 @@ public class MenuOwnerService {
         validateMenuBelongsToStore(menu.getStore().getId(), storeId);
 
         menu.setDeletedAt(LocalDateTime.now());
+    }
+
+    public MenuResponse uploadMenuImage(Long userId, Long storeId, Long menuId, MultipartFile file) {
+        Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
+        validateStoreOwner(storeOwnerId, userId);
+
+        Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
+        validateMenuBelongsToStore(menu.getStore().getId(), storeId);
+
+        // 기존 이미지 삭제
+        if (menu.getImageUrl() != null) {
+            s3Service.deleteImage(folder, menu.getImageUrl());
+        }
+
+        String imageUrl = s3Service.uploadImage(file, folder);
+        menu.setImageUrl(imageUrl);
+
+        return MenuResponse.builder()
+                .menuId(menu.getId())
+                .menuName(menu.getName())
+                .price(menu.getPrice())
+                .description(menu.getDescription())
+                .imageUrl(menu.getImageUrl())
+                .build();
     }
 
     private static void validateStoreOwner(Long storeOwnerId, Long currentUserId) {
