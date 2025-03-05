@@ -1,12 +1,13 @@
 package com.example.deliveryapp.domain.order.controller;
 
-import com.example.deliveryapp.domain.order.dto.request.OrderMenuRequest;
-import com.example.deliveryapp.domain.order.dto.request.OrderRequest;
+import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
+import com.example.deliveryapp.domain.order.dto.response.OrderMenuResponse;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
+import com.example.deliveryapp.domain.order.service.CartService;
 import com.example.deliveryapp.domain.order.service.OrderService;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
@@ -45,6 +46,9 @@ public class OrderControllerTest {
     @MockitoBean
     private OrderService orderService;
 
+    @MockitoBean
+    private CartService cartService;
+
     @Test
     void 주문_생성_성공() throws Exception {
         Long userId = 1L;
@@ -55,20 +59,49 @@ public class OrderControllerTest {
 
         String bearerToken = "bearerToken";
 
-        OrderRequest orderRequest = new OrderRequest(
-                1L, new OrderMenuRequest(1L, "name", 10000L));
+        Order order = new Order(user, store, OrderState.CART);
+        OrderMenu orderMenu = new OrderMenu(order, 1L, "name1",1000L);
+        ReflectionTestUtils.setField(orderMenu, "id", 1L);
+        OrderMenu orderMenu1 = new OrderMenu(order, 1L, "name2",200L);
+        ReflectionTestUtils.setField(orderMenu1, "id", 2L);
+        List<OrderMenuResponse> orderMenus = List.of(new OrderMenuResponse(orderMenu), new OrderMenuResponse(orderMenu1));
 
-        Order order = new Order(user, store, OrderState.PENDING);
-        OrderMenu orderMenu = new OrderMenu(order, 1L, "menu1", 10000L);
+        OrderResponse orderResponse = new OrderResponse(order, orderMenus);
 
-        OrderResponse orderResponse = new OrderResponse(order, orderMenu);
-
-        given(orderService.createOrder(anyLong(), any(OrderRequest.class))).willReturn(orderResponse);
+        given(orderService.createOrder(anyLong())).willReturn(orderResponse);
 
         mockMvc.perform(post("/orders")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(orderRequest))
+                        .with(request -> {
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("email", "em@em.com");
+                            request.setAttribute("name", "name");
+                            request.setAttribute("userRole", "USER");
+                            return request;
+                        }))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void 장바구니_추가_성공() throws Exception {
+        long userId = 1L;
+        long storeId = 1L;
+        long menuId = 1L;
+
+        String bearerToken = "bearerToken";
+
+        User user = new User("em@em.com", "pw", "name", UserRole.USER);
+        Store store = new Store(
+                "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                1000L, StoreStatus.OPEN, user);
+        Menu menu = new Menu("name",1000L, "description", store);
+
+        doNothing().when(cartService).addCart(userId,menuId);
+
+        mockMvc.perform(post("/menus/{menuId}/orders",menuId)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .with(request -> {
                             request.setAttribute("userId", userId);
                             request.setAttribute("email", "em@em.com");
@@ -93,9 +126,10 @@ public class OrderControllerTest {
 
         OrderMenu orderMenu = new OrderMenu(order, 1L, "menu1", 10000L);
         OrderMenu orderMenu2 = new OrderMenu(order, 2L, "menu2", 10000L);
+        List<OrderMenuResponse> menuResponseList = List.of(
+                new OrderMenuResponse(orderMenu),new OrderMenuResponse(orderMenu2));
 
-        List<OrderResponse> orderList = List.of(
-                new OrderResponse(order, orderMenu), new OrderResponse(order, orderMenu2));
+        List<OrderResponse> orderList = List.of(new OrderResponse(order, menuResponseList));
 
         given(orderService.getOrdersByUserId(anyLong())).willReturn(orderList);
 
@@ -110,7 +144,7 @@ public class OrderControllerTest {
                             return request;
                         }))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
@@ -133,11 +167,11 @@ public class OrderControllerTest {
         Order order3 = new Order(user3, store, OrderState.PENDING);
 
         OrderMenu orderMenu = new OrderMenu(order, 1L, "menu1", 10000L);
+        OrderMenu orderMenu2 = new OrderMenu(order, 2L, "menu2", 10000L);
+        List<OrderMenuResponse> menuResponseList = List.of(
+                new OrderMenuResponse(orderMenu),new OrderMenuResponse(orderMenu2));
 
-        List<OrderResponse> orderList = List.of(
-                new OrderResponse(order, orderMenu),
-                new OrderResponse(order2, orderMenu),
-                new OrderResponse(order3, orderMenu));
+        List<OrderResponse> orderList = List.of(new OrderResponse(order, menuResponseList));
 
         given(orderService.getOrdersByStoreId(anyLong(), anyLong())).willReturn(orderList);
 
@@ -152,7 +186,7 @@ public class OrderControllerTest {
                             return request;
                         }))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test

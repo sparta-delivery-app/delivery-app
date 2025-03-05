@@ -1,8 +1,6 @@
 package com.example.deliveryapp.domain.order.service;
 
 import com.example.deliveryapp.domain.common.exception.CustomException;
-import com.example.deliveryapp.domain.order.dto.request.OrderMenuRequest;
-import com.example.deliveryapp.domain.order.dto.request.OrderRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
@@ -15,7 +13,6 @@ import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
-import com.example.deliveryapp.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,9 +39,6 @@ public class OrderServiceTest {
     private OrderRepository orderRepository;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private StoreRepository storeRepository;
 
     @Mock
@@ -56,7 +50,7 @@ public class OrderServiceTest {
     @Nested
     class createOrder {
         @Test
-        void 존재하지_않는_userId_예외_발생() {
+        void 존재하지_않는_orderId_예외_발생() {
             long userId = 1L;
             long storeId = 1L;
 
@@ -67,37 +61,13 @@ public class OrderServiceTest {
                     "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
                     1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
+            Order order = new Order(user, store, OrderState.CART);
 
-            OrderRequest orderRequest = new OrderRequest(
-                    storeId, new OrderMenuRequest(1L, "name", 10000L));
-
-            given(userRepository.findById(anyLong())).willReturn(Optional.empty());
-
-            assertThrows(CustomException.class,
-                    () -> orderService.createOrder(userId, orderRequest), "사용자를 찾을 수 없습니다");
-        }
-
-        @Test
-        void 존재하지_않는_storeId_예외_발생() {
-            long userId = 1L;
-            long storeId = 1L;
-
-            User user = new User("em@em.com", "pw", "name", UserRole.USER);
-            ReflectionTestUtils.setField(user, "id", userId);
-
-            Store store = new Store(
-                    "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
-                    1000L, StoreStatus.OPEN, user);
-            ReflectionTestUtils.setField(store, "id", storeId);
-
-            OrderRequest orderRequest = new OrderRequest(
-                    storeId, new OrderMenuRequest(1L, "name", 10000L));
-
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(storeRepository.findById(anyLong())).willReturn(Optional.empty());
+            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+                    .willReturn(Optional.empty());
 
             assertThrows(CustomException.class,
-                    () -> orderService.createOrder(userId, orderRequest), "가게를 찾을 수 없습니다");
+                    () -> orderService.createOrder(userId), "주문 정보를 찾을 수 없습니다");
         }
 
         @Test
@@ -113,14 +83,13 @@ public class OrderServiceTest {
                     1000L, StoreStatus.CLOSED_BY_TIME, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
-            OrderRequest orderRequest = new OrderRequest(
-                    storeId, new OrderMenuRequest(1L, "name", 10000L));
+            Order order = new Order(user, store, OrderState.CART);
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
+            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+                    .willReturn(Optional.of(order));
 
             assertThrows(CustomException.class,
-                    () -> orderService.createOrder(userId, orderRequest), "가게 운영 시간이 아닙니다");
+                    () -> orderService.createOrder(userId), "가게 운영 시간이 아닙니다");
         }
 
         @Test
@@ -136,18 +105,17 @@ public class OrderServiceTest {
                     1000L, StoreStatus.CLOSED_BY_TIME, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
-            OrderRequest orderRequest = new OrderRequest(
-                    storeId, new OrderMenuRequest(1L, "name", 10000L));
+            Order order = new Order(user, store, OrderState.CART);
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
+            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+                    .willReturn(Optional.of(order));
 
             assertThrows(CustomException.class,
-                    () -> orderService.createOrder(userId, orderRequest), "가게 운영 시간이 아닙니다");
+                    () -> orderService.createOrder(userId), "가게 운영 시간이 아닙니다");
         }
 
         @Test
-        void 최소주문_금액_보다_낮을시_예외_발생() {
+        void 최소_주문_금액보다_낮을시_예외_발생() {
             long userId = 1L;
             long storeId = 1L;
 
@@ -159,14 +127,19 @@ public class OrderServiceTest {
                     15000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
-            OrderRequest orderRequest = new OrderRequest(
-                    storeId, new OrderMenuRequest(1L, "name", 10000L));
+            Order order = new Order(user, store, OrderState.CART);
+            OrderMenu orderMenu = new OrderMenu(order, 1L, "name",100L);
+            ReflectionTestUtils.setField(orderMenu, "id", 1L);
+            OrderMenu orderMenu1 = new OrderMenu(order, 1L, "name",100L);
+            ReflectionTestUtils.setField(orderMenu1, "id", 2L);
+            order.addOrderMenu(orderMenu);
+            order.addOrderMenu(orderMenu1);
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
+            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+                    .willReturn(Optional.of(order));
 
             assertThrows(CustomException.class,
-                    () -> orderService.createOrder(userId, orderRequest), "최소 주문 금액을 만족해야 주문이 가능합니다");
+                    () -> orderService.createOrder(userId), "최소 주문 금액을 만족해야 주문이 가능합니다");
         }
 
         @Test
@@ -182,26 +155,28 @@ public class OrderServiceTest {
                     1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
-            OrderRequest orderRequest = new OrderRequest(
-                    storeId, new OrderMenuRequest(1L, "name", 10000L));
+            Order order = new Order(user, store, OrderState.CART);
+            OrderMenu orderMenu = new OrderMenu(order, 1L, "name1",1000L);
+            ReflectionTestUtils.setField(orderMenu, "id", 1L);
+            OrderMenu orderMenu1 = new OrderMenu(order, 1L, "name2",200L);
+            ReflectionTestUtils.setField(orderMenu1, "id", 2L);
+            order.addOrderMenu(orderMenu);
+            order.addOrderMenu(orderMenu1);
 
+            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+                    .willReturn(Optional.of(order));
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
-
-            OrderResponse response = orderService.createOrder(userId, orderRequest);
+            OrderResponse response = orderService.createOrder(userId);
 
             assertNotNull(response);
             assertEquals(storeId, response.getStoreId());
             assertEquals(userId, response.getUserId());
-            assertEquals("name", response.getOrderMenuResponse().getName());
-            assertEquals(10000L, response.getOrderMenuResponse().getPrice());
+            assertEquals("name1", response.getOrderMenus().get(0).getName());
+            assertEquals(1000L, response.getOrderMenus().get(0).getPrice());
             assertEquals(OrderState.PENDING, response.getOrderState());
 
-            verify(userRepository, times(1)).findById(anyLong());
-            verify(storeRepository, times(1)).findById(anyLong());
+            verify(orderRepository, times(1)).findByUserIdAndOrderState(anyLong(),any(OrderState.class));
             verify(orderRepository, times(1)).save(any(Order.class));
-            verify(orderMenuRepository, times(1)).save(any(OrderMenu.class));
         }
     }
 
@@ -230,8 +205,6 @@ public class OrderServiceTest {
         OrderMenu orderMenu = new OrderMenu(order, 1L, "menu1", 10000L);
 
         given(orderRepository.findOrdersByUserId(anyLong())).willReturn(orderList);
-        given(orderMenuRepository.findByOrderId(order.getId())).willReturn(orderMenu);
-        given(orderMenuRepository.findByOrderId(order2.getId())).willReturn(orderMenu);
 
         List<OrderResponse> list = orderService.getOrdersByUserId(userId);
 
@@ -239,7 +212,7 @@ public class OrderServiceTest {
         OrderResponse orderResponse = list.get(0);
         assertEquals(userId, orderResponse.getUserId());
         assertEquals(OrderState.PENDING, orderResponse.getOrderState());
-        assertNotNull(orderResponse.getOrderMenuResponse());
+        assertNotNull(orderResponse.getOrderMenus());
     }
 
     @Nested
@@ -303,8 +276,6 @@ public class OrderServiceTest {
 
             given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
             given(orderRepository.findOrdersByStoreId(anyLong())).willReturn(orderList);
-            given(orderMenuRepository.findByOrderId(order.getId())).willReturn(orderMenu);
-            given(orderMenuRepository.findByOrderId(order2.getId())).willReturn(orderMenu);
 
             List<OrderResponse> list = orderService.getOrdersByStoreId(storeId, userId);
 
@@ -312,7 +283,7 @@ public class OrderServiceTest {
             OrderResponse orderResponse = list.get(0);
             assertEquals(userId, orderResponse.getUserId());
             assertEquals(OrderState.PENDING, orderResponse.getOrderState());
-            assertNotNull(orderResponse.getOrderMenuResponse());
+            assertNotNull(orderResponse.getOrderMenus());
         }
     }
 

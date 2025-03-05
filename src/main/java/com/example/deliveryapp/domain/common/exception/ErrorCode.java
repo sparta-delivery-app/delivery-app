@@ -56,8 +56,9 @@ public enum ErrorCode {
     ORDER_CANNOT_BE_DELIVERY(HttpStatus.BAD_REQUEST, "ORDER004", "수락된 주문만 배달을 시작할 수 있습니다"),
     ORDER_CANNOT_BE_COMPLETED(HttpStatus.BAD_REQUEST, "ORDER005", "배달 시작된 주문만 배달 완료 처리할 수 있습니다"),
     ORDER_CANNOT_BE_CANCELED(HttpStatus.BAD_REQUEST, "ORDER006", "배달이 완료되었거나 진행 중인 주문은 취소할 수 없습니다"),
-    ORDER_CLOSED(HttpStatus.BAD_REQUEST, "ORDER007", "가게 운영 시간이 아닙니다"),
-    ORDER_TOO_CHEAP(HttpStatus.BAD_REQUEST, "ORDER008", "최소 주문 금액을 만족해야 주문이 가능합니다");
+    ORDER_CANNOT_BE_CART(HttpStatus.BAD_REQUEST,"ORDER007","이미 주문된 상태입니다"),
+    ORDER_CLOSED(HttpStatus.BAD_REQUEST, "ORDER008", "가게 운영 시간이 아닙니다"),
+    ORDER_TOO_CHEAP(HttpStatus.BAD_REQUEST, "ORDER009", "최소 주문 금액을 만족해야 주문이 가능합니다");
 
 
     private final HttpStatus status;

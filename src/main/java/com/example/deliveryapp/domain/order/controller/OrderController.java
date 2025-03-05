@@ -2,9 +2,9 @@ package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.common.annotation.Auth;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
-import com.example.deliveryapp.domain.order.dto.request.OrderRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
+import com.example.deliveryapp.domain.order.service.CartService;
 import com.example.deliveryapp.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +19,21 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final CartService cartService;
 
+    // 전체 주문
     @PostMapping("/orders")
     public ResponseEntity<OrderResponse> createOrder(
-            @Auth AuthUser authUser, @Valid @RequestBody OrderRequest orderRequest) {
-        return ResponseEntity.ok(orderService.createOrder(authUser.getId(), orderRequest));
+            @Auth AuthUser authUser) {
+        return ResponseEntity.ok(orderService.createOrder(authUser.getId()));
+    }
+
+    // 장바구니 추가
+    @PostMapping("/menus/{menuId}/orders")
+    public ResponseEntity<Void> addCart(
+            @Auth AuthUser authUser, @PathVariable Long menuId) {
+        cartService.addCart(authUser.getId(), menuId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/orders")
