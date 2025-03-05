@@ -43,9 +43,9 @@ public class StoreService {
     private final UserService userService;
     private final MenuRepository menuRepository;
     private final OrderRepository orderRepository;
+    private final UserRepository userRepository;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private final UserRepository userRepository;
 
     // 가게 생성
     @Transactional
@@ -68,7 +68,7 @@ public class StoreService {
         return StoreSaveResponse.of(store, user);
     }
 
-    // 가게 페이지 조회
+//    // 가게 페이지 조회
 //    @Transactional(readOnly = true)
 //    public Page<StorePageResponse> findAllPage(Pageable pageable) {
 //        Page<Store> storePage = storeRepository.findAll(pageable);
@@ -97,7 +97,12 @@ public class StoreService {
         Store store = storeRepository.findById(id).
                 orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
-        return new StoreResponse(store);
+        if (store.getStatus() == StoreStatus.PERMANENTLY_CLOSED) {
+            throw new CustomException(ErrorCode.STORE_NOT_FOUND);
+        }
+
+        List<MenuResponse> menus = menuRepository.findListByStoreId(store.getId());
+        return new StoreResponse(store, menus);
     }
 
     // 가게 수정

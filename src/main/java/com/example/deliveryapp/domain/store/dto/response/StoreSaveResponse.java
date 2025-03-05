@@ -4,12 +4,14 @@ import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.user.entity.User;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
+@Builder
 public class StoreSaveResponse {
     private final Long id;
     private final Long userId;

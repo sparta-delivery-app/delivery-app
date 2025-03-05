@@ -4,6 +4,7 @@ import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@Builder
 public class StoreResponse {
     private final Long id;
     private final Long userId;
@@ -39,7 +41,7 @@ public class StoreResponse {
         this.menus = menus;
     }
 
-    public StoreResponse(Store store) {
+    public StoreResponse(Store store, List<MenuResponse> menus) {
         this.id = store.getId();
         this.userId = store.getUser().getId();
         this.name = store.getName();

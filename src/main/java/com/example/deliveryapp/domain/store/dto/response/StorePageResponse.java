@@ -2,12 +2,14 @@ package com.example.deliveryapp.domain.store.dto.response;
 
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
+@Builder
 public class StorePageResponse {
     private final Long id;
     private final String name;

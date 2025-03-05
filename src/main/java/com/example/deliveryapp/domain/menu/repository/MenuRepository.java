@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface MenuRepository extends JpaRepository<Menu, Long> {
@@ -24,4 +25,9 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
         return findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.MENU_NOT_FOUND));
     }
+
+    @Query("SELECT new com.example.deliveryapp.domain.menu.dto.response.MenuResponse(m.id, m.name, m.price) " +
+            "FROM Menu m " +
+            "WHERE m.store.id = :storeId AND m.deletedAt IS NULL")
+    List<MenuResponse> findListByStoreId(@Param("storeId") Long storeId);
 }
