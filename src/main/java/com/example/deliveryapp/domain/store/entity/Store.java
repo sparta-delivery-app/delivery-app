@@ -1,7 +1,6 @@
 package com.example.deliveryapp.domain.store.entity;
 
 import com.example.deliveryapp.domain.common.entity.Timestamped;
-import com.example.deliveryapp.domain.store.dto.request.StoreUpdateRequest;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -62,7 +61,8 @@ public class Store extends Timestamped {
         this.status = status;
     }
 
-    public void delete() {
-        isDeleted = true;
+    public void closeStore() {
+        this.status = StoreStatus.PERMANENTLY_CLOSED;
+        this.isDeleted = true;
     }
 }

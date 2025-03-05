@@ -17,6 +17,7 @@ import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
+import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -46,6 +47,14 @@ public class StoreService {
     @Transactional
     public StoreSaveResponse save(Long userId, StoreSaveRequest dto) {
         User user = userService.findById(userId);
+
+        if (user.getRole() != UserRole.OWNER) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
+        }
+
+        if (user.getStoreCount >= 3) {
+            throw new CustomException(ErrorCode.STORE_LIMIT_EXCEEDED);
+        }
 
         LocalTime openTime = LocalTime.parse(dto.getOpenTime(), FORMATTER);
         LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), FORMATTER);
@@ -104,13 +113,12 @@ public class StoreService {
             throw new CustomException(ErrorCode.INVALID_USER_UPDATE_STORE);
         }
 
+        if (dto.getStatus() != null && dto.getStatus().equals(StoreStatus.PERMANENTLY_CLOSED.name())) {
+            throw new CustomException(ErrorCode.STORE_STATUS_CANNOT_BE_CHANGED_TO_CLOSED);
+        }
         LocalTime openTime = LocalTime.parse(dto.getOpenTime(), FORMATTER);
         LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), FORMATTER);
         StoreStatus status = StoreStatus.valueOf(dto.getStatus());
-
-        if (status == StoreStatus.PERMANENTLY_CLOSED && orderRepository.existsByStoreId(storeId)) {
-            throw new CustomException(ErrorCode.STORE_HAS_ORDERS);
-        }
 
         findStore.update(dto.getName(), openTime, closeTime, dto.getMinimumOrderPrice(), status);
         return StoreUpdateResponse.of(findStore, findUser);
@@ -121,11 +129,25 @@ public class StoreService {
     public void delete(Long storeId, Long userId) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
+
         if (!userId.equals(store.getUser().getId())) {
             throw new CustomException(ErrorCode.INVALID_USER_DELETE_STORE);
         }
-        store.delete();
-        reviewDeleteService.delete(storeId);
+
+        if (store.getStatus() == StoreStatus.PERMANENTLY_CLOSED) {
+            throw new CustomException(ErrorCode.STORE_ALREADY_CLOSED);
+        }
+
+        if (orderRepository.existsByStoreId(storeId)) {
+            throw new CustomException(ErrorCode.STORE_HAS_ORDERS);
+        }
+
+        store.closeStore();
+        User user = store.getUser();
+        user.decreaseStoreCount();
+
+        menuRepository.findByStoreId(storeId).forEach(Menu::deleteMenu);
+        reviewRepository.findByStoreId(storeId).forEach(Review::deleteReview);
     }
 
 }
