@@ -16,13 +16,13 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     // 내가 쓴 리뷰 전체 조회
-    @GetMapping("/api/reviews/my-reviews/{userId}")
+    @GetMapping("/users/{userId}/reviews")
     public List<ReviewResponseDto> getMyReviews(@PathVariable Long userId) {
         return reviewService.getMyReviews(userId);
     }
 
     // 가게 기준으로 리뷰 조회
-    @GetMapping("/api/reviews/store/{storeId}")
+    @GetMapping("/stores/{storeId}/reviews")
     public Page<ReviewResponseDto> getReviewsByStoreId(@PathVariable Long storeId,
                                                        @RequestParam(required = false) Integer minRating,
                                                        @RequestParam(required = false) Integer maxRating,
@@ -32,19 +32,19 @@ public class ReviewController {
     }
 
     // 리뷰 작성
-    @PostMapping("/api/reviews/create")
+    @PostMapping("/stores/{storeId}/reviews")
     public ReviewResponseDto createReview(@RequestBody ReviewRequestDto reviewRequestDto) {
         return reviewService.createReview(reviewRequestDto);
     }
 
     // 리뷰 수정
-    @PutMapping("/api/reviews/update/{reviewId}")
+    @PutMapping("/reviews/{reviewId}")
     public ReviewResponseDto updateReview(@PathVariable Long reviewId, @RequestBody ReviewRequestDto reviewRequestDto) {
         return reviewService.updateReview(reviewId, reviewRequestDto);
     }
 
     // 리뷰 삭제
-    @DeleteMapping("/api/reviews/delete/{reviewId}")
+    @DeleteMapping("/reviews/{reviewId}")
     public String deleteReview(@PathVariable Long reviewId) {
         reviewService.deleteReview(reviewId);
         return "리뷰가 삭제되었습니다.";
