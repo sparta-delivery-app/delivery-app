@@ -1,6 +1,6 @@
 package com.example.deliveryapp.domain.order.controller;
 
-import com.example.deliveryapp.domain.order.dto.request.OrderMenuRequest;
+import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderMenuResponse;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
@@ -71,6 +71,35 @@ public class OrderControllerTest {
         given(orderService.createOrder(anyLong())).willReturn(orderResponse);
 
         mockMvc.perform(post("/orders")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(request -> {
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("email", "em@em.com");
+                            request.setAttribute("name", "name");
+                            request.setAttribute("userRole", "USER");
+                            return request;
+                        }))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void 장바구니_추가_성공() throws Exception {
+        long userId = 1L;
+        long storeId = 1L;
+        long menuId = 1L;
+
+        String bearerToken = "bearerToken";
+
+        User user = new User("em@em.com", "pw", "name", UserRole.USER);
+        Store store = new Store(
+                "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                1000L, user);
+        Menu menu = new Menu("name",1000L, store);
+
+        doNothing().when(cartService).addCart(userId,menuId);
+
+        mockMvc.perform(post("/menus/{menuId}/orders",menuId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .with(request -> {
