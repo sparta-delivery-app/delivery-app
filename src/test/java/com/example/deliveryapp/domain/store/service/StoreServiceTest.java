@@ -3,9 +3,11 @@ package com.example.deliveryapp.domain.store.service;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
+import com.example.deliveryapp.domain.menu.repository.MenuRepository;
+import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.review.repository.ReviewRepository;
 import com.example.deliveryapp.domain.store.dto.request.StoreSaveRequest;
-import com.example.deliveryapp.domain.store.dto.response.StorePageResponse;
+import com.example.deliveryapp.domain.store.dto.request.StoreUpdateRequest;
 import com.example.deliveryapp.domain.store.dto.response.StoreSaveResponse;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
@@ -16,7 +18,6 @@ import com.example.deliveryapp.domain.user.repository.UserRepository;
 import com.example.deliveryapp.domain.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -31,9 +32,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class StoreServiceTest {
@@ -45,6 +47,12 @@ class StoreServiceTest {
     private StoreRepository storeRepository;
 
     @Mock
+    private MenuRepository menuRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -53,8 +61,38 @@ class StoreServiceTest {
     @InjectMocks
     private StoreService storeService;
 
+
     @Test
-    public void 가게_등록_중_사장을_찾지_못해_에러가_발생한다() {
+    void 가게_수정_중_가게를_찾지_못해_에러가_발생한다() {
+        // given
+        long storeId = 1L;
+        long userId = 1L;
+        StoreUpdateRequest request = new StoreUpdateRequest("가게1", "10:00", "20:00", 1000L, "OPEN");
+        given(storeRepository.findById(storeId)).willReturn(Optional.empty());
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.update(storeId, userId, request));
+
+        // then
+        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_삭제_중_가게를_찾지_못해_에러가_발생한다() {
+        // given
+        long storeId = 1L;
+        long userId = 1L;
+        given(storeRepository.findById(storeId)).willReturn(Optional.empty());
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.delete(storeId, userId));
+
+        // then
+        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_등록_중_사장을_찾지_못해_에러가_발생한다() {
         // given
         long userId = 1L;
         StoreSaveRequest request = new StoreSaveRequest(
@@ -76,7 +114,7 @@ class StoreServiceTest {
     }
 
     @Test
-    public void 가게를_정상적으로_등록한다() {
+    void 가게를_정상적으로_등록한다() {
         // given
         long userId = 1L;
         StoreSaveRequest request = new StoreSaveRequest(
@@ -97,7 +135,7 @@ class StoreServiceTest {
         Store store = new Store(request.getName(), openTime, closeTime, request.getMinimumOrderPrice(), status, user);
 
         given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-        given(storeRepository.save(ArgumentMatchers.any(Store.class))).willReturn(store);
+        given(storeRepository.save(any(Store.class))).willReturn(store);
 
         // when
         StoreSaveResponse result = storeService.save(authUser.getId(), request);
@@ -109,7 +147,7 @@ class StoreServiceTest {
     }
 
     @Test
-    public void 가게_단건_조회_중_가게를_찾지_못해_에러가_발생한다() {
+    void 가게_단건_조회_중_가게를_찾지_못해_에러가_발생한다() {
         // given
         long storeId = 1L;
         given(storeRepository.findById(storeId)).willReturn(Optional.empty());
@@ -124,7 +162,7 @@ class StoreServiceTest {
     }
 
 //    @Test
-//    public void 가게_페이지를_정상_조회한다() {
+//    void 가게_페이지를_정상_조회한다() {
 //        // given
 //        PageRequest pageable = PageRequest.of(0, 10);
 //        List<Store> stores = new ArrayList<>();
