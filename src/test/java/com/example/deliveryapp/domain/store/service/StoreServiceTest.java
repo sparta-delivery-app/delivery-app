@@ -64,13 +64,11 @@ class StoreServiceTest {
                 10000L,
                 "OPEN"
         );
-        AuthUser authUser = new AuthUser(userId, "email", "name", UserRole.OWNER);
-        User user = new User(String.valueOf(authUser.getId()), authUser.getEmail(), authUser.getName(), authUser.getUserRole());
         given(userRepository.findById(anyLong())).willReturn(Optional.empty());
 
         // when
         CustomException exception = assertThrows(CustomException.class, () -> {
-            storeService.save(user.getId(), request);
+            storeService.save(userId, request);
         });
 
         // then
