@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Table(name = "orders")
@@ -37,4 +39,5 @@ public class Order extends Timestamped {
         this.store = store;
         this.orderState = orderState;
     }
+
 }
