@@ -2,7 +2,6 @@ package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.common.annotation.Auth;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
-import com.example.deliveryapp.domain.order.dto.request.OrderMenuRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.service.CartService;
@@ -30,10 +29,10 @@ public class OrderController {
     }
 
     // 장바구니 추가
-    @PostMapping("/stores/{storeId}/orders")
+    @PostMapping("/menus/{menuId}/orders")
     public ResponseEntity<Void> addCart(
-           @PathVariable Long storeId, @Auth AuthUser authUser, @Valid @RequestBody OrderMenuRequest request) {
-        cartService.addCart(storeId, authUser.getId(), request);
+            @Auth AuthUser authUser, @PathVariable Long menuId) {
+        cartService.addCart(authUser.getId(), menuId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
