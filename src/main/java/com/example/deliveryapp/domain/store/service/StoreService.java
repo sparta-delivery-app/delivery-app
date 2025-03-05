@@ -102,7 +102,7 @@ public class StoreService {
         }
 
         List<MenuResponse> menus = menuRepository.findListByStoreId(store.getId());
-        return new StoreResponse(store, menus);
+        return StoreResponse.of(store, menus);
     }
 
     // 가게 수정

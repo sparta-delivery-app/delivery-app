@@ -9,7 +9,6 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -41,20 +40,6 @@ public class StoreResponse {
         this.menus = menus;
     }
 
-    public StoreResponse(Store store, List<MenuResponse> menus) {
-        this.id = store.getId();
-        this.userId = store.getUser().getId();
-        this.name = store.getName();
-        this.openTime = store.getOpenTime();
-        this.closeTime = store.getCloseTime();
-        this.minimumOrderPrice = store.getMinimumOrderPrice();
-        this.status = store.getStatus();
-        this.createdAt = store.getCreatedAt();
-        this.updatedAt = store.getUpdatedAt();
-        this.deletedAt = store.getDeletedAt();
-        this.menus = new ArrayList<>();
-    }
-
     public static StoreResponse of(Store store, List<MenuResponse> menus) {
         return new StoreResponse(
                 store.getId(),
@@ -70,4 +55,5 @@ public class StoreResponse {
                 menus
         );
     }
+
 }
