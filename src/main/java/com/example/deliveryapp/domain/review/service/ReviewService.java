@@ -2,6 +2,7 @@ package com.example.deliveryapp.domain.review.service;
 
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.enums.OrderState;
+import com.example.deliveryapp.domain.order.repository.OrderMenuRepository;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.review.dto.ReviewRequestDto;
 import com.example.deliveryapp.domain.review.dto.ReviewResponseDto;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
+    private final OrderMenuRepository orderMenuRepository; // OrderMenuRepository 추가
     private final OrderRepository orderRepository;
 
     // 리뷰 작성
@@ -51,15 +53,13 @@ public class ReviewService {
         Review savedReview = reviewRepository.save(review);
 
         // 저장된 리뷰를 ReviewResponseDto로 변환
-        return new ReviewResponseDto(savedReview);
+        return new ReviewResponseDto(savedReview, orderMenuRepository);
     }
 
     // 가게 기준으로 리뷰 조회 (최신순 정렬 및 별점 범위 필터링)
     public List<ReviewResponseDto> getReviewsByStoreId(Long storeId, Integer minRating, Integer maxRating) {
-        // 리뷰 조회
         List<Review> reviews = reviewRepository.findByOrderStoreId(storeId);
 
-        // 별점 필터링
         if (minRating != null) {
             reviews = reviews.stream()
                     .filter(review -> review.getRating() >= minRating)
@@ -74,9 +74,22 @@ public class ReviewService {
         // 최신순으로 정렬
         reviews.sort((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()));
 
-        // ReviewResponseDto로 변환하여 반환
         return reviews.stream()
-                .map(ReviewResponseDto::new)
+                .map(review -> new ReviewResponseDto(review, orderMenuRepository))
+                .collect(Collectors.toList());
+    }
+
+    // 내가 쓴 리뷰 전체 조회
+    public List<ReviewResponseDto> getMyReviews(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        List<Review> reviews = reviewRepository.findByUserId(user.getId());
+
+        reviews.sort((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()));
+
+        return reviews.stream()
+                .map(review -> new ReviewResponseDto(review, orderMenuRepository))
                 .collect(Collectors.toList());
     }
 }
