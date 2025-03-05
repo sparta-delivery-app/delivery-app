@@ -11,6 +11,7 @@ import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.order.repository.OrderMenuRepository;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
+import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
@@ -63,7 +64,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(9, 0), LocalTime.of(22, 0), 1000L, user);
+                    "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                    1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             OrderRequest orderRequest = new OrderRequest(
@@ -84,7 +86,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(9, 0), LocalTime.of(22, 0), 1000L, user);
+                    "name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                    1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             OrderRequest orderRequest = new OrderRequest(
@@ -106,7 +109,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(23, 59), LocalTime.of(1, 0), 1000L, user);
+                    "name", LocalTime.of(23, 59), LocalTime.of(1, 0),
+                    1000L, StoreStatus.CLOSED_BY_TIME, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             OrderRequest orderRequest = new OrderRequest(
@@ -128,7 +132,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(23, 58), LocalTime.of(23, 59), 1000L, user);
+                    "name", LocalTime.of(23, 58), LocalTime.of(23, 59),
+                    1000L, StoreStatus.CLOSED_BY_TIME, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             OrderRequest orderRequest = new OrderRequest(
@@ -150,7 +155,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59), 15000L, user);
+                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                    15000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             OrderRequest orderRequest = new OrderRequest(
@@ -172,7 +178,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L, user);
+                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                    1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             OrderRequest orderRequest = new OrderRequest(
@@ -208,7 +215,8 @@ public class OrderServiceTest {
         ReflectionTestUtils.setField(user, "id", userId);
 
         Store store = new Store(
-                "name", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L, user);
+                "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                1000L, StoreStatus.OPEN, user);
         ReflectionTestUtils.setField(store, "id", storeId);
 
         long orderId = 1L;
@@ -259,7 +267,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user2, "id", user2Id);
 
             Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L, user2);
+                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                    1000L, StoreStatus.OPEN, user2);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
@@ -278,7 +287,8 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(user, "id", userId);
 
             Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L, user);
+                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                    1000L, StoreStatus.OPEN, user);
             ReflectionTestUtils.setField(store, "id", storeId);
 
             long orderId = 1L;
@@ -334,7 +344,8 @@ public class OrderServiceTest {
                 ReflectionTestUtils.setField(user, "id", userId);
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59),
+                        1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getUser(), "id", otherUserId);
@@ -354,7 +365,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.ACCEPTED);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getUser(), "id", userId);
@@ -374,7 +386,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getUser(), "id", userId);
@@ -401,7 +414,8 @@ public class OrderServiceTest {
                 ReflectionTestUtils.setField(user, "id", userId);
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", otherUserId);
@@ -421,7 +435,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.ACCEPTED);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -441,7 +456,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -468,7 +484,8 @@ public class OrderServiceTest {
                 ReflectionTestUtils.setField(user, "id", userId);
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", otherUserId);
@@ -488,7 +505,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.ACCEPTED);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -508,7 +526,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -535,7 +554,8 @@ public class OrderServiceTest {
                 ReflectionTestUtils.setField(user, "id", userId);
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.ACCEPTED);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", otherUserId);
@@ -555,7 +575,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -575,7 +596,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.ACCEPTED);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -602,7 +624,8 @@ public class OrderServiceTest {
                 ReflectionTestUtils.setField(user, "id", userId);
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.DELIVERY);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", otherUserId);
@@ -621,7 +644,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.PENDING);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
@@ -641,7 +665,8 @@ public class OrderServiceTest {
                 long orderId = 1L;
 
                 Order order = new Order(new User("test@email.com", "pw", "test", UserRole.USER)
-                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59), 1000L
+                        , new Store("store", LocalTime.of(0, 0), LocalTime.of(23, 59)
+                        , 1000L, StoreStatus.OPEN
                         , new User("em2@em.com", "pw", "name", UserRole.USER)), OrderState.DELIVERY);
                 ReflectionTestUtils.setField(order, "id", orderId);
                 ReflectionTestUtils.setField(order.getStore().getUser(), "id", userId);
