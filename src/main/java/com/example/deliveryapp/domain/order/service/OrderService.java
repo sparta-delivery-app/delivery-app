@@ -31,33 +31,6 @@ public class OrderService {
     private final UserRepository userRepository;
     private final StoreRepository storeRepository;
     private final OrderRepository orderRepository;
-    private final OrderMenuRepository orderMenuRepository;
-
-    @Transactional
-    public void addCart(Long storeId, Long userId, OrderMenuRequest request) {
-        Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new CustomException(ErrorCode.STORE_NOT_FOUND));
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
-
-        Order order = orderRepository.findByUserIdAndOrderState(userId, OrderState.CART).orElseThrow(null);
-
-        if (order != null) { // 장바구니 이미 존재하는 경우
-            if (!storeId.equals(order.getStore().getId())) {
-                order.getOrderMenus().clear(); // 장바구니 가게 변경 시 장바구니 초기화
-                order.setStore(store); // 장바구니 가게 변경 시 요청사항의 가게로 변경
-            }
-            OrderMenu orderMenu = new OrderMenu(order, request.getMenuId(), request.getName(), request.getPrice());
-            order.addOrderMenu(orderMenu);
-            orderRepository.save(order);
-        } else {
-            Order newOrder = new Order(user, store, OrderState.CART);
-            OrderMenu orderMenu = new OrderMenu(newOrder, request.getMenuId(), request.getName(), request.getPrice());
-
-            newOrder.addOrderMenu(orderMenu);
-            orderRepository.save(newOrder);
-        }
-    }
 
     @Transactional
     public OrderResponse createOrder(Long userId) {
