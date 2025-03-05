@@ -1,6 +1,5 @@
 package com.example.deliveryapp.domain.order.entity;
 
-import com.example.deliveryapp.domain.common.entity.Timestamped;
 import jakarta.persistence.*;
 import lombok.*;
 

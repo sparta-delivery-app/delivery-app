@@ -2,8 +2,9 @@ package com.example.deliveryapp.domain.order.service;
 
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
-import com.example.deliveryapp.domain.order.dto.request.OrderRequest;
+import com.example.deliveryapp.domain.order.dto.request.OrderMenuRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
+import com.example.deliveryapp.domain.order.dto.response.OrderMenuResponse;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
@@ -33,11 +34,37 @@ public class OrderService {
     private final OrderMenuRepository orderMenuRepository;
 
     @Transactional
-    public OrderResponse createOrder(Long userId, OrderRequest orderRequest) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
-        Store store = storeRepository.findById(orderRequest.getStoreId())
-                .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
+    public void addCart(Long storeId, Long userId, OrderMenuRequest request) {
+        Store store = storeRepository.findById(storeId).orElseThrow(
+                () -> new CustomException(ErrorCode.STORE_NOT_FOUND));
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new CustomException(ErrorCode.USER_NOT_FOUND));
+
+        Order order = orderRepository.findByUserIdAndOrderState(userId, OrderState.CART).orElseThrow(null);
+
+        if (order != null) { // 장바구니 이미 존재하는 경우
+            if (!storeId.equals(order.getStore().getId())) {
+                order.getOrderMenus().clear(); // 장바구니 가게 변경 시 장바구니 초기화
+                order.setStore(store); // 장바구니 가게 변경 시 요청사항의 가게로 변경
+            }
+            OrderMenu orderMenu = new OrderMenu(order, request.getMenuId(), request.getName(), request.getPrice());
+            order.addOrderMenu(orderMenu);
+            orderRepository.save(order);
+        } else {
+            Order newOrder = new Order(user, store, OrderState.CART);
+            OrderMenu orderMenu = new OrderMenu(newOrder, request.getMenuId(), request.getName(), request.getPrice());
+
+            newOrder.addOrderMenu(orderMenu);
+            orderRepository.save(newOrder);
+        }
+    }
+
+    @Transactional
+    public OrderResponse createOrder(Long userId) {
+        Order order = orderRepository.findByUserIdAndOrderState(userId, OrderState.CART)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+
+        Store store = order.getStore();
 
         LocalTime nowTime = LocalTime.now();
         LocalTime openTime = store.getOpenTime();
@@ -49,22 +76,19 @@ public class OrderService {
             throw new CustomException(ErrorCode.ORDER_CLOSED);
         }
 
-        if (orderRequest.getOrderMenus().getPrice() < store.getMinimumOrderPrice()) {
+        if (order.calculateTotalPrice() < store.getMinimumOrderPrice()) {
             throw new CustomException(ErrorCode.ORDER_TOO_CHEAP);
         }
 
-        Order order = new Order(user, store, OrderState.PENDING);
+        order.setOrderState(OrderState.PENDING);
+
+        List<OrderMenuResponse> orderMenus = order.getOrderMenus().stream()
+                .map(menu -> new OrderMenuResponse(menu.getMenuId(), menu.getName(), menu.getPrice()))
+                .collect(toList());
 
         orderRepository.save(order);
 
-        OrderMenu orderMenu = new OrderMenu(order,
-                orderRequest.getOrderMenus().getMenuId(),
-                orderRequest.getOrderMenus().getName(),
-                orderRequest.getOrderMenus().getPrice());
-
-        orderMenuRepository.save(orderMenu);
-
-        return new OrderResponse(order, orderMenu);
+        return new OrderResponse(order, orderMenus);
     }
 
     @Transactional(readOnly = true)
@@ -73,8 +97,10 @@ public class OrderService {
 
         return orderList.stream()
                 .map(order -> {
-                    OrderMenu orderMenu = orderMenuRepository.findByOrderId(order.getId());
-                    return new OrderResponse(order, orderMenu);
+                    List<OrderMenuResponse> orderMenus = order.getOrderMenus().stream()
+                            .map(menu -> new OrderMenuResponse(menu.getMenuId(), menu.getName(), menu.getPrice()))
+                            .toList();
+                    return new OrderResponse(order, orderMenus);
                 }).collect(toList());
     }
 
@@ -91,8 +117,10 @@ public class OrderService {
         List<Order> orderList = orderRepository.findOrdersByStoreId(storeId);
         return orderList.stream()
                 .map(order -> {
-                    OrderMenu orderMenu = orderMenuRepository.findByOrderId(order.getId());
-                    return new OrderResponse(order, orderMenu);
+                    List<OrderMenuResponse> orderMenus = order.getOrderMenus().stream()
+                            .map(menu -> new OrderMenuResponse(menu.getMenuId(), menu.getName(), menu.getPrice()))
+                            .toList();
+                    return new OrderResponse(order, orderMenus);
                 }).collect(toList());
     }
 
@@ -178,4 +206,5 @@ public class OrderService {
             throw new CustomException(ErrorCode.ORDER_CANNOT_BE_COMPLETED);
         }
     }
+
 }
