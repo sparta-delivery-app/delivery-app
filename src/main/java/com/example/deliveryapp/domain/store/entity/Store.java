@@ -4,15 +4,13 @@ import com.example.deliveryapp.domain.common.entity.Timestamped;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalTime;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "stores")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Store extends Timestamped {
@@ -64,5 +62,9 @@ public class Store extends Timestamped {
     public void closeStore() {
         this.status = StoreStatus.PERMANENTLY_CLOSED;
         this.isDeleted = true;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
     }
 }
