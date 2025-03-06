@@ -3,16 +3,11 @@ package com.example.deliveryapp.domain.store.repository;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.store.entity.Store;
-import com.example.deliveryapp.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 public interface StoreRepository extends JpaRepository<Store, Long> {
     Optional<Store> findByIdAndDeletedAtIsNull(Long id);
@@ -31,14 +26,7 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
         return findOwnerIdByStoreIdIfActive(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
     }
-    List<Store> findAllByUser(User user);
-
-    @Modifying
-    @Transactional
-    @Query("UPDATE Store s SET s.isDeleted = true WHERE s.user.id = :id")
-    int softdeleteByUserId(Long id);
 
     long countByUserIdAndIsDeletedFalse(Long userId);
 
-    void deleteByUserId(Long userId);
 }

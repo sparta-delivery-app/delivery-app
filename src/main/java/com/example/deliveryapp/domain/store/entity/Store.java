@@ -63,4 +63,8 @@ public class Store extends Timestamped {
         this.status = StoreStatus.PERMANENTLY_CLOSED;
         this.isDeleted = true;
     }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
 }

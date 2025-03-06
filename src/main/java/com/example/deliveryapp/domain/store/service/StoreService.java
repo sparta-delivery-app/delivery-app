@@ -3,7 +3,6 @@ package com.example.deliveryapp.domain.store.service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
-import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.review.repository.ReviewRepository;
@@ -23,7 +22,6 @@ import com.example.deliveryapp.domain.user.repository.UserRepository;
 import com.example.deliveryapp.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +38,6 @@ import java.util.stream.Collectors;
 public class StoreService {
     private final StoreRepository storeRepository;
     private final ReviewRepository reviewRepository;
-    private final UserService userService;
     private final MenuRepository menuRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
@@ -68,28 +65,28 @@ public class StoreService {
         return StoreSaveResponse.of(store, user);
     }
 
-//    // 가게 페이지 조회
-//    @Transactional(readOnly = true)
-//    public Page<StorePageResponse> findAllPage(Pageable pageable) {
-//        Page<Store> storePage = storeRepository.findAll(pageable);
-//
-//        List<Long> storeIds = storePage.stream()
-//                .map(Store::getId)
-//                .collect(Collectors.toList());
-//
-//        List<ReviewStatistics> reviewStatisticsList = reviewRepository.countAndAverageRatingByStoreIds(storeIds);
-//        Map<Long, ReviewStatistics> reviewStatisticsMap = reviewStatisticsList.stream()
-//                .collect(Collectors.toMap(ReviewStatistics::getStoreId, dto -> dto));
-//
-//        return storePage.map(store -> {
-//            ReviewStatistics statisticsDto = reviewStatisticsMap.getOrDefault(store.getId(), new ReviewStatistics(store.getId(), 0L, 0.0));
-//            return StorePageResponse.of(
-//                    store,
-//                    statisticsDto.getAverageRating(),
-//                    statisticsDto.getCount()
-//            );
-//        });
-//    }
+    // 가게 페이지 조회
+    @Transactional(readOnly = true)
+    public Page<StorePageResponse> findAllPage(Pageable pageable) {
+        Page<Store> storePage = storeRepository.findAll(pageable);
+
+        List<Long> storeIds = storePage.stream()
+                .map(Store::getId)
+                .collect(Collectors.toList());
+
+        List<ReviewStatistics> reviewStatisticsList = reviewRepository.countAndAverageRatingByStoreIds(storeIds);
+        Map<Long, ReviewStatistics> reviewStatisticsMap = reviewStatisticsList.stream()
+                .collect(Collectors.toMap(ReviewStatistics::getStoreId, dto -> dto));
+
+        return storePage.map(store -> {
+            ReviewStatistics statisticsDto = reviewStatisticsMap.getOrDefault(store.getId(), new ReviewStatistics(store.getId(), 0L, 0.0));
+            return StorePageResponse.of(
+                    store,
+                    statisticsDto.getAverageRating(),
+                    statisticsDto.getCount()
+            );
+        });
+    }
 
     // 가게 단건 조회
     @Transactional(readOnly = true)
@@ -151,7 +148,6 @@ public class StoreService {
         store.closeStore();
         store.setDeletedAt(LocalDateTime.now());
         storeRepository.save(store);
-
 
     }
 

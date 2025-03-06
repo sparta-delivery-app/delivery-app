@@ -3,11 +3,11 @@ package com.example.deliveryapp.domain.store.service;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
-import com.example.deliveryapp.domain.menu.repository.MenuRepository;
-import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.review.repository.ReviewRepository;
+import com.example.deliveryapp.domain.store.dto.ReviewStatistics;
 import com.example.deliveryapp.domain.store.dto.request.StoreSaveRequest;
 import com.example.deliveryapp.domain.store.dto.request.StoreUpdateRequest;
+import com.example.deliveryapp.domain.store.dto.response.StorePageResponse;
 import com.example.deliveryapp.domain.store.dto.response.StoreSaveResponse;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
@@ -15,7 +15,6 @@ import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
-import com.example.deliveryapp.domain.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +24,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -49,16 +47,7 @@ class StoreServiceTest {
     private StoreRepository storeRepository;
 
     @Mock
-    private MenuRepository menuRepository;
-
-    @Mock
-    private OrderRepository orderRepository;
-
-    @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private UserService userService;
 
     @InjectMocks
     private StoreService storeService;
@@ -79,9 +68,8 @@ class StoreServiceTest {
         AuthUser authUser = new AuthUser(userId, "email", "name", UserRole.OWNER);
         User user = new User(String.valueOf(authUser.getId()), authUser.getEmail(), authUser.getName(), authUser.getUserRole());
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime openTime = LocalTime.parse(request.getOpenTime(), formatter);
-        LocalTime closeTime = LocalTime.parse(request.getCloseTime(), formatter);
+        LocalTime openTime = LocalTime.parse(request.getOpenTime(), FORMATTER);
+        LocalTime closeTime = LocalTime.parse(request.getCloseTime(), FORMATTER);
         StoreStatus status = StoreStatus.valueOf(request.getStatus());
 
         Store store = new Store(request.getName(), openTime, closeTime, request.getMinimumOrderPrice(), status, user);
@@ -208,7 +196,7 @@ class StoreServiceTest {
     }
 
     @Test
-    void 가게_수정_중_상태를_영업_종료로_변경하려는_경우_성공한다() {
+    void 가게_상태를_영업_종료로_변경_성공() {
         //given
         long storeId = 1L;
         long userId = 1L;
@@ -271,29 +259,43 @@ class StoreServiceTest {
         assertEquals(ErrorCode.INVALID_USER_DELETE_STORE, exception.getErrorCode());
     }
 
-//    @Test
-//    void 가게_페이지를_정상_조회한다() {
-//        // given
-//        PageRequest pageable = PageRequest.of(0, 10);
-//        List<Store> stores = new ArrayList<>();
-//        User user = User.builder()
-//                .email("test@test.com")
-//                .password("password")
-//                .name("testName")
-//                .role(UserRole.USER).
-//                build();
-//
-//        stores.add(new Store("가게1", LocalTime.of(10, 0), LocalTime.of(20,0), 10000L, StoreStatus.OPEN, user));
-//        Page<Store> storesPage = new PageImpl<>(stores, pageable, stores.size());
-//        given(storeRepository.findAll(pageable)).willReturn(storesPage);
-//        //given(reviewRepository.countAndAverageRatingByStoreIds(anyList()).willReturn(new ArrayList<>());
-//
-//        // when
-//        //Page<StorePageResponse> result = storeService.findAllPage(pageable);
-//
-//        // then
-////        assertNotNull(result);
-////        assertEquals(1, result.getContent().size());
-////        assertEquals("가게1", result.getContent().get(0).getName());
-//    }
+    @Test
+    void 가게_페이지를_정상_조회한다() {
+        // given
+        PageRequest pageable = PageRequest.of(0, 10);
+        List<Store> stores = new ArrayList<>();
+        User user = User.builder()
+                .email("test@test.com")
+                .password("password")
+                .name("testName")
+                .role(UserRole.USER).
+                build();
+
+        Store store = Store.builder()
+                    .name("가게1")
+                    .openTime(LocalTime.of(10, 0))
+                    .closeTime(LocalTime.of(20,0))
+                    .minimumOrderPrice(10000L)
+                    .status(StoreStatus.OPEN)
+                    .user(user)
+                    .build();
+
+        stores.add(store);
+
+        Page<Store> storesPage = new PageImpl<>(stores, pageable, stores.size());
+        given(storeRepository.findAll(pageable)).willReturn(storesPage);
+
+        List<ReviewStatistics> reviewStatisticsList = new ArrayList<>();
+        reviewStatisticsList.add(new ReviewStatistics(store.getId(), 0L, 0.0));
+
+        given(reviewRepository.countAndAverageRatingByStoreIds(anyList())).willReturn(reviewStatisticsList);
+
+        // when
+        Page<StorePageResponse> result = storeService.findAllPage(pageable);
+
+        // then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        assertEquals("가게1", result.getContent().get(0).getName());
+    }
 }
