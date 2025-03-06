@@ -1,9 +1,13 @@
 package com.example.deliveryapp.domain.order.service;
 
-import com.example.deliveryapp.domain.common.exception.CustomException;
-import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.menu.entity.Menu;
+import com.example.deliveryapp.domain.menu.entity.OptionCategory;
+import com.example.deliveryapp.domain.menu.entity.OptionItem;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
+import com.example.deliveryapp.domain.menu.repository.OptionCategoryRepository;
+import com.example.deliveryapp.domain.menu.repository.OptionItemRepository;
+import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
+import com.example.deliveryapp.domain.order.dto.request.CartAddRequest.OptionRequest;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
@@ -13,6 +17,7 @@ import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.user.entity.User;
 import com.example.deliveryapp.domain.user.enums.UserRole;
 import com.example.deliveryapp.domain.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -45,110 +51,96 @@ public class CartServiceTest {
     @Mock
     private MenuRepository menuRepository;
 
+    @Mock
+    private OptionCategoryRepository optionCategoryRepository;
+
+    @Mock
+    private OptionItemRepository optionItemRepository;
+
     @InjectMocks
     private CartService cartService;
 
     @Nested
     class 장바구니_추가 {
-        @Test
-        void user_조회_실패() {
-            long userId = 1L;
-            long storeId = 1L;
 
-            User user = new User("em@em.com", "pw", "name", UserRole.USER);
+        private CartAddRequest request;
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.empty());
-
-            assertThrows(CustomException.class,
-                    () -> cartService.addCart(userId, storeId), "사용자를 찾을 수 없습니다");
-        }
-
-        @Test
-        void menu_조회_실패() {
-            long userId = 1L;
-            long storeId = 1L;
-
-            User user = new User("em@em.com", "pw", "name", UserRole.USER);
-            Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, StoreStatus.OPEN, user);
-
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(menuRepository.findById(anyLong())).willReturn(Optional.empty());
-
-            assertThrows(CustomException.class,
-                    () -> cartService.addCart(userId, storeId), "메뉴를 찾을 수 없습니다");
-        }
-
-        @Test
-        void order_조회_실패() {
-            long userId = 1L;
-            long storeId = 1L;
-
-            User user = new User("em@em.com", "pw", "name", UserRole.USER);
-            Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, StoreStatus.OPEN,user);
-            Menu menu = new Menu("name",1000L, "description", store);
-
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(menuRepository.findById(anyLong())).willReturn(Optional.of(menu));
-            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
-                    .willThrow(new CustomException(ErrorCode.ORDER_NOT_FOUND));
-
-            assertThrows(CustomException.class,
-                    () -> cartService.addCart(userId, storeId), "주문을 찾을 수 없습니다");
+        @BeforeEach
+        void setUp() {
+            request = new CartAddRequest(
+                    1L,
+                    List.of(
+                            new OptionRequest(1L, List.of(1L, 2L))
+                    )
+            );
         }
 
         @Test
         void 장바구니_가게가_다른_경우_초기화_후_추가_성공() {
-            long userId = 1L;
-            long storeId = 1L;
-            long menuId = 1L;
+            User user = mock(User.class);
+            given(userRepository.findByIdAndUserRoleOrThrow(anyLong())).willReturn(user);
 
-            User user = new User("em@em.com", "pw", "name", UserRole.USER);
-            Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, StoreStatus.OPEN, user);
-            ReflectionTestUtils.setField(store,"id",storeId);
+            Store store = mock(Store.class);
+            given(store.getId()).willReturn(1L);
 
-            Store store2 = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, StoreStatus.OPEN, user);
-            ReflectionTestUtils.setField(store,"id",2L);
+            Menu menu = spy(new Menu("menu1", 10000L, "description", store));
+            given(menu.getId()).willReturn(request.getMenuId());
+            given(menuRepository.findActiveMenuByIdOrThrow(anyLong())).willReturn(menu);
 
-            Menu menu = new Menu("name",1000L, "description", store);
+            OptionItem item1 = spy(new OptionItem("item1", 1000L));
+            given(item1.getId()).willReturn(request.getOptions().get(0).getOptionItemIds().get(0));
+            OptionItem item2 = spy(new OptionItem("item2", 2000L));
+            given(item2.getId()).willReturn(request.getOptions().get(0).getOptionItemIds().get(1));
 
-            Order order = new Order(user, store2, OrderState.CART);
+            OptionCategory optionCategory = spy(new OptionCategory("category1", false, true, null, menu));
+            given(optionCategory.getId()).willReturn(request.getOptions().get(0).getOptionCategoryId());
+            given(optionCategory.getOptionItems()).willReturn(Arrays.asList(item1, item2));
+            given(optionCategoryRepository.findAllByMenuId(anyLong())).willReturn(List.of(optionCategory));
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(menuRepository.findById(anyLong())).willReturn(Optional.of(menu));
+            Store anotherStore = mock(Store.class);
+            given(store.getId()).willReturn(2L);
+            Order order = spy(new Order(user, anotherStore, OrderState.CART));
+            given(order.getId()).willReturn(1L);
             given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
                     .willReturn(Optional.of(order));
 
-            cartService.addCart(userId,menuId);
+            given(optionItemRepository.findByIdOrThrow(item1.getId())).willReturn(item1);
+            given(optionItemRepository.findByIdOrThrow(item2.getId())).willReturn(item2);
 
-            verify(orderRepository, times(1)).save(any(Order.class));
+            cartService.addCart(1L, request);
+
+            verify(order, times(1)).clearOrderMenus();
+            verify(order, times(1)).setStore(any(Store.class));
         }
 
         @Test
         void 장바구니_없는_상태_장바구니_추가_성공() {
-            long userId = 1L;
-            long storeId = 1L;
-            long menuId = 1L;
+            User user = mock(User.class);
+            given(userRepository.findByIdAndUserRoleOrThrow(anyLong())).willReturn(user);
 
-            User user = new User("em@em.com", "pw", "name", UserRole.USER);
-            Store store = new Store(
-                    "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                    1000L, StoreStatus.OPEN, user);
-            Menu menu = new Menu("name",1000L, "description", store);
+            Store store = mock(Store.class);
+            given(store.getId()).willReturn(1L);
 
-            given(userRepository.findById(anyLong())).willReturn(Optional.of(user));
-            given(menuRepository.findById(anyLong())).willReturn(Optional.of(menu));
+            Menu menu = spy(new Menu("menu1", 10000L, "description", store));
+            given(menu.getId()).willReturn(request.getMenuId());
+            given(menuRepository.findActiveMenuByIdOrThrow(anyLong())).willReturn(menu);
+
+            OptionItem item1 = spy(new OptionItem("item1", 1000L));
+            given(item1.getId()).willReturn(request.getOptions().get(0).getOptionItemIds().get(0));
+            OptionItem item2 = spy(new OptionItem("item2", 2000L));
+            given(item2.getId()).willReturn(request.getOptions().get(0).getOptionItemIds().get(1));
+
+            OptionCategory optionCategory = spy(new OptionCategory("category1", false, true, null, menu));
+            given(optionCategory.getId()).willReturn(request.getOptions().get(0).getOptionCategoryId());
+            given(optionCategory.getOptionItems()).willReturn(Arrays.asList(item1, item2));
+            given(optionCategoryRepository.findAllByMenuId(anyLong())).willReturn(List.of(optionCategory));
+
             given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
                     .willReturn(Optional.empty());
+            given(optionItemRepository.findByIdOrThrow(item1.getId())).willReturn(item1);
+            given(optionItemRepository.findByIdOrThrow(item2.getId())).willReturn(item2);
 
-            cartService.addCart(userId,menuId);
+            cartService.addCart(1L, request);
 
             verify(orderRepository, times(1)).save(any(Order.class));
         }
@@ -162,7 +154,7 @@ public class CartServiceTest {
         Store store1 = new Store("name", LocalTime.of(9, 0), LocalTime.of(22, 0),
                 1000L, StoreStatus.OPEN, user1);
         Order order1 = new Order(user1, store1, OrderState.CART);
-        order1.setId(1L);
+        ReflectionTestUtils.setField(order1, "id", 1L);
         order1.setUpdatedAt(LocalDateTime.now().minusHours(25));
 
         Long userId2 = 2L;
@@ -170,9 +162,9 @@ public class CartServiceTest {
         Store store2 = new Store("name2", LocalTime.of(9, 0), LocalTime.of(22, 0),
                 1000L, StoreStatus.OPEN, user2);
         Order order2 = new Order(user2, store2, OrderState.CART);
-        order2.setId(2L);
+        ReflectionTestUtils.setField(order2, "id", 2L);
         order2.setUpdatedAt(LocalDateTime.now().minusHours(5));
-        OrderMenu orderMenu = new OrderMenu(order1,1L,"name",1000L);
+        OrderMenu orderMenu = new OrderMenu(new Menu("menu1", 10000L, "description", store1));
         order1.addOrderMenu(orderMenu);
         order2.addOrderMenu(orderMenu);
         List<Order> orders = Arrays.asList(order1, order2);
