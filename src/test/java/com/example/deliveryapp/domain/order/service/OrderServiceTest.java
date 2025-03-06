@@ -71,6 +71,28 @@ public class OrderServiceTest {
         }
 
         @Test
+        void 가게가_폐업한_경우_주문시_예외_발생() {
+            long userId = 1L;
+            long storeId = 1L;
+
+            User user = new User("em@em.com", "pw", "name", UserRole.USER);
+            ReflectionTestUtils.setField(user, "id", userId);
+
+            Store store = new Store(
+                    "name", LocalTime.of(23, 59), LocalTime.of(1, 0),
+                    1000L, StoreStatus.PERMANENTLY_CLOSED, user);
+            ReflectionTestUtils.setField(store, "id", storeId);
+
+            Order order = new Order(user, store, OrderState.CART);
+
+            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+                    .willReturn(Optional.of(order));
+
+            assertThrows(CustomException.class,
+                    () -> orderService.createOrder(userId), "이미 폐업된 가게입니다");
+        }
+
+        @Test
         void 가게가_자정_이후에_닫고_닫은_시간에_주문시_예외_발생() {
             long userId = 1L;
             long storeId = 1L;
@@ -128,14 +150,14 @@ public class OrderServiceTest {
             ReflectionTestUtils.setField(store, "id", storeId);
 
             Order order = new Order(user, store, OrderState.CART);
-            OrderMenu orderMenu = new OrderMenu(order, 1L, "name",100L);
+            OrderMenu orderMenu = new OrderMenu(order, 1L, "name", 100L);
             ReflectionTestUtils.setField(orderMenu, "id", 1L);
-            OrderMenu orderMenu1 = new OrderMenu(order, 1L, "name",100L);
+            OrderMenu orderMenu1 = new OrderMenu(order, 1L, "name", 100L);
             ReflectionTestUtils.setField(orderMenu1, "id", 2L);
             order.addOrderMenu(orderMenu);
             order.addOrderMenu(orderMenu1);
 
-            given(orderRepository.findByUserIdAndOrderState(anyLong(),any(OrderState.class)))
+            given(orderRepository.findByUserIdAndOrderState(anyLong(), any(OrderState.class)))
                     .willReturn(Optional.of(order));
 
             assertThrows(CustomException.class,

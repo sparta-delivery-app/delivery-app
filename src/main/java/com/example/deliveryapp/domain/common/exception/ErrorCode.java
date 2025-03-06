@@ -11,6 +11,7 @@ public enum ErrorCode {
     // COMMON
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "COMMON001", "유효하지 않은 요청 값입니다"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON002", "이 엔드포인트에서는 해당 HTTP 메서드를 지원하지 않습니다"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON003", "서버 내부 오류가 발생했습니다"),
 
     // TOKEN
     INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "TOKEN001", "유효하지 않는 JWT 서명입니다."),
@@ -43,6 +44,9 @@ public enum ErrorCode {
     // MENU
     MENU_NOT_FOUND(HttpStatus.NOT_FOUND, "MENU001", "메뉴를 찾을 수 없습니다"),
     NOT_STORE_MENU(HttpStatus.BAD_REQUEST, "MENU002", "해당 가게에 속한 메뉴가 아닙니다"),
+
+    // MENU OPTION
+    OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "OPTION001", "옵션을 찾을 수 없습니다"),
 
     // FILE
     EMPTY_FILE(HttpStatus.BAD_REQUEST, "FILE001", "빈 파일은 업로드할 수 없습니다"),

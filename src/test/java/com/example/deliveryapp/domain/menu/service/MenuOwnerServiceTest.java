@@ -3,8 +3,7 @@ package com.example.deliveryapp.domain.menu.service;
 import com.example.deliveryapp.client.S3Service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
-import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
-import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
+import com.example.deliveryapp.domain.menu.dto.request.MenuRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.entity.Menu;
@@ -40,17 +39,16 @@ class MenuOwnerServiceTest {
     @InjectMocks
     private MenuOwnerService menuOwnerService;
 
-
     @Nested
     @Order(1)
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class SaveMenuTests {
 
-        private MenuSaveRequest request;
+        private MenuRequest request;
 
         @BeforeEach
         void setUp() {
-            request = new MenuSaveRequest("menu1", 15000L, "description");
+            request = new MenuRequest("menu1", 15000L, "description");
         }
 
         @Test
@@ -103,11 +101,11 @@ class MenuOwnerServiceTest {
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class UpdateMenuTests {
 
-        private MenuUpdateRequest request;
+        private MenuRequest request;
 
         @BeforeEach
         void setUp() {
-            request = new MenuUpdateRequest("menu1", 15000L, "description");
+            request = new MenuRequest("menu1", 15000L, "description");
         }
 
         @Test
