@@ -5,20 +5,20 @@ import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.user.entity.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @Table(name = "orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends Timestamped {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +31,10 @@ public class Order extends Timestamped {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderState orderState;
+    private OrderState orderState = OrderState.CART;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderMenu> orderMenus = new ArrayList<>();
 
     @Builder
     public Order(User user, Store store, OrderState orderState) {
@@ -40,4 +43,14 @@ public class Order extends Timestamped {
         this.orderState = orderState;
     }
 
+    public void addOrderMenu(OrderMenu orderMenu) {
+        orderMenus.add(orderMenu);
+        orderMenu.setOrder(this);
+    }
+
+    public long calculateTotalPrice() {
+        return orderMenus.stream()
+                .mapToLong(OrderMenu::getPrice)
+                .sum();
+    }
 }
