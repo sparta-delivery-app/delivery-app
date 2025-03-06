@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class MenuUpdateRequest {
+public class MenuRequest {
     @NotBlank
     @Size(max = 255)
     private final String menuName;

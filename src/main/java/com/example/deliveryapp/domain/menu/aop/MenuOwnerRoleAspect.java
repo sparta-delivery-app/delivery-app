@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MenuOwnerRoleAspect {
 
-    @Before("within(com.example.deliveryapp.domain.menu.controller.MenuOwnerController) && " +
+    @Before("within(com.example.deliveryapp.domain.menu.controller.*OwnerController) && " +
             "args(authUser, ..)")
     public void checkOwnerRole(AuthUser authUser) {
         if (!UserRole.OWNER.equals(authUser.getUserRole())) {

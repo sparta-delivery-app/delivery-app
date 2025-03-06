@@ -2,8 +2,7 @@ package com.example.deliveryapp.domain.menu.controller;
 
 import com.example.deliveryapp.domain.common.annotation.Auth;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
-import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
-import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
+import com.example.deliveryapp.domain.menu.dto.request.MenuRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.service.MenuOwnerService;
@@ -24,7 +23,7 @@ public class MenuOwnerController {
     public ResponseEntity<MenuResponse> saveMenu(
             @Auth AuthUser authUser,
             @PathVariable Long storeId,
-            @Valid @RequestBody MenuSaveRequest request
+            @Valid @RequestBody MenuRequest request
     ) {
         MenuResponse response = menuOwnerService.saveMenu(authUser.getId(), storeId, request);
         return ResponseEntity.ok(response);
@@ -35,7 +34,7 @@ public class MenuOwnerController {
             @Auth AuthUser authUser,
             @PathVariable Long storeId,
             @PathVariable Long menuId,
-            @Valid @RequestBody MenuUpdateRequest request
+            @Valid @RequestBody MenuRequest request
     ) {
         MenuResponse response = menuOwnerService.updateMenu(authUser.getId(), storeId, menuId, request);
         return ResponseEntity.ok(response);

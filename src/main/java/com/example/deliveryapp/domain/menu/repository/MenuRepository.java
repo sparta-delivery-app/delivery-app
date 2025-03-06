@@ -27,4 +27,12 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             "FROM Menu m " +
             "WHERE m.store.id = :storeId AND m.deletedAt IS NULL")
     List<MenuResponse> findListByStoreId(@Param("storeId") Long storeId);
+
+    @Query("SELECT s.user.id FROM Menu m JOIN m.store s WHERE m.id = :menuId AND m.deletedAt IS NULL")
+    Optional<Long> findOwnerIdByMenuId(@Param("menuId") Long menuId);
+
+    default Long findOwnerIdByMenuIdOrThrow(Long id) {
+        return findOwnerIdByMenuId(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.MENU_NOT_FOUND));
+    }
 }

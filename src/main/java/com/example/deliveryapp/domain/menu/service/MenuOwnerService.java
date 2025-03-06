@@ -3,8 +3,7 @@ package com.example.deliveryapp.domain.menu.service;
 import com.example.deliveryapp.client.S3Service;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
-import com.example.deliveryapp.domain.menu.dto.request.MenuSaveRequest;
-import com.example.deliveryapp.domain.menu.dto.request.MenuUpdateRequest;
+import com.example.deliveryapp.domain.menu.dto.request.MenuRequest;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponse;
 import com.example.deliveryapp.domain.menu.dto.response.MenuResponseWithImageUrl;
 import com.example.deliveryapp.domain.menu.entity.Menu;
@@ -31,7 +30,7 @@ public class MenuOwnerService {
     private final StoreRepository storeRepository;
     private final S3Service s3Service;
 
-    public MenuResponse saveMenu(Long userId, Long storeId, MenuSaveRequest request) {
+    public MenuResponse saveMenu(Long userId, Long storeId, MenuRequest request) {
         Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
         validateStoreOwner(store.getUser().getId(), userId);
 
@@ -52,7 +51,7 @@ public class MenuOwnerService {
                 .build();
     }
 
-    public MenuResponse updateMenu(Long userId, Long storeId, Long menuId, MenuUpdateRequest request) {
+    public MenuResponse updateMenu(Long userId, Long storeId, Long menuId, MenuRequest request) {
         Long storeOwnerId = storeRepository.findOwnerIdByStoreIdOrThrow(storeId);
         validateStoreOwner(storeOwnerId, userId);
 
