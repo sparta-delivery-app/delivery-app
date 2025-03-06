@@ -3,7 +3,6 @@ package com.example.deliveryapp.domain.order.controller;
 import com.example.deliveryapp.domain.common.annotation.Auth;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
-import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.service.CartService;
 import com.example.deliveryapp.domain.order.service.OrderService;
@@ -17,22 +16,28 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class OrderController {
+public class OrderUserController {
 
     private final OrderService orderService;
+    private final CartService cartService;
 
-    @GetMapping("/stores/{storeId}/orders")
-    public List<OrderResponse> getStoreOrders(@Auth AuthUser authUser, @PathVariable Long storeId) {
-        return orderService.getOrdersByStoreId(authUser.getId(), storeId);
+    // 전체 주문
+    @PostMapping("/orders")
+    public ResponseEntity<OrderResponse> createOrder(@Auth AuthUser authUser) {
+        return ResponseEntity.ok(orderService.createOrder(authUser.getId()));
     }
 
-    @PatchMapping("/orders/{orderId}")
-    public ResponseEntity<Void> updateOrderState(
+    @PostMapping("/carts")
+    public ResponseEntity<Void> addCart(
             @Auth AuthUser authUser,
-            @PathVariable Long orderId,
-            @Valid @RequestBody OrderStateUpdateRequest request) {
-        orderService.updateOrderState(authUser.getId(), orderId, request);
+            @RequestBody @Valid CartAddRequest cartAddRequest
+    ) {
+        cartService.addCart(authUser.getId(), cartAddRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @GetMapping("/orders")
+    public List<OrderResponse> getUserOrders(@Auth AuthUser authUser) {
+        return orderService.getOrdersByUserId(authUser.getId());
+    }
 }
