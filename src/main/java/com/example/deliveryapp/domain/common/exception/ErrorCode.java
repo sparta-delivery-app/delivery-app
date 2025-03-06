@@ -29,6 +29,8 @@ public enum ErrorCode {
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USER005", "유효하지 않은 토큰 값입니다"),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "USER006", "비밀번호가 올바르지 않습니다"),
     OWNER_ONLY_ACCESS(HttpStatus.FORBIDDEN, "USER007", "OWNER 권한이 필요합니다"),
+    USER_ONLY_ACCESS(HttpStatus.FORBIDDEN, "USER008", "USER 권한이 필요합니다"),
+
 
     // STORE
     STORE_NOT_FOUND(HttpStatus.NOT_FOUND, "STORE001", "가게를 찾을 수 없습니다"),
@@ -72,7 +74,8 @@ public enum ErrorCode {
     ORDER_CANNOT_BE_CANCELED(HttpStatus.BAD_REQUEST, "ORDER006", "배달이 완료되었거나 진행 중인 주문은 취소할 수 없습니다"),
     ORDER_CANNOT_BE_CART(HttpStatus.BAD_REQUEST,"ORDER007","이미 주문된 상태입니다"),
     ORDER_CLOSED(HttpStatus.BAD_REQUEST, "ORDER008", "가게 운영 시간이 아닙니다"),
-    ORDER_TOO_CHEAP(HttpStatus.BAD_REQUEST, "ORDER009", "최소 주문 금액을 만족해야 주문이 가능합니다");
+    ORDER_TOO_CHEAP(HttpStatus.BAD_REQUEST, "ORDER009", "최소 주문 금액을 만족해야 주문이 가능합니다"),
+    ORDER_MENU_NOT_FOUND(HttpStatus.BAD_REQUEST,"ORDER010","장바구니 메뉴가 존재하지 않습니다" );
 
 
     private final HttpStatus status;

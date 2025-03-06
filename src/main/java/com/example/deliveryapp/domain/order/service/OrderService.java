@@ -6,6 +6,7 @@ import com.example.deliveryapp.domain.order.converter.OrderConverter;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
+import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
@@ -25,12 +26,13 @@ public class OrderService {
     private final StoreRepository storeRepository;
     private final OrderRepository orderRepository;
 
-    // TODO: 메뉴나 메뉴 항목 존재하지 않을 때 예외 처리 추가
     @Transactional
     public OrderResponse createOrder(Long userId) {
         Order order = orderRepository.findByUserIdAndOrderState(userId, OrderState.CART)
                 .orElseThrow(() -> new CustomException(ErrorCode.CART_NOT_FOUND));
+
         validateOrderAvailability(order);
+        checkMenuAndOrderMenu(order);
 
         order.setOrderState(OrderState.PENDING);
 
@@ -103,6 +105,21 @@ public class OrderService {
         if (order.calculateTotalPrice() < store.getMinimumOrderPrice()) {
             throw new CustomException(ErrorCode.ORDER_TOO_CHEAP);
         }
+    }
+
+    private void checkMenuAndOrderMenu(Order order) {
+        // 주문 항목이 없을 경우
+        if (order.getOrderMenus() == null || order.getOrderMenus().isEmpty()) {
+            throw new CustomException(ErrorCode.ORDER_MENU_NOT_FOUND);
+        }
+
+        // Menu가 없을 경우
+        for (OrderMenu orderMenu : order.getOrderMenus()) {
+            if (orderMenu.getMenu() == null) {
+                throw new CustomException(ErrorCode.MENU_NOT_FOUND);
+            }
+        }
+
     }
 
     private static void validateStoreOwner(Long userId, Long storeOwnerId) {
