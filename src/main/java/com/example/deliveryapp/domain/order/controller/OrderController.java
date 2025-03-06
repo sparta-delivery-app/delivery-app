@@ -2,10 +2,8 @@ package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.common.annotation.Auth;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
-import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
-import com.example.deliveryapp.domain.order.service.CartService;
 import com.example.deliveryapp.domain.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

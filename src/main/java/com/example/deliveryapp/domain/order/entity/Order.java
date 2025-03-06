@@ -58,4 +58,9 @@ public class Order extends Timestamped {
                 .mapToLong(OrderMenu::getTotalPrice)
                 .sum();
     }
+
+    public void removeOrderMenu(OrderMenu orderMenu) {
+        orderMenus.remove(orderMenu);
+        orderMenu.setOrder(null);  // 양방향으로 삭제
+    }
 }

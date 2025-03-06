@@ -10,6 +10,7 @@ import com.example.deliveryapp.domain.menu.repository.OptionCategoryRepository;
 import com.example.deliveryapp.domain.menu.repository.OptionItemRepository;
 import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
 import com.example.deliveryapp.domain.order.dto.request.CartAddRequest.OptionRequest;
+import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.entity.OrderMenuOption;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -72,6 +75,34 @@ public class CartService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<OrderResponse.OrderMenuResponse> getCartItems(Long userId) {
+        Order order = getOrderInCart(userId);
+
+        return order.getOrderMenus().stream()
+                .map(menu -> new OrderResponse.OrderMenuResponse(
+                        menu.getId(), menu.getMenu().getId(), menu.getMenu().getName(), menu.getTotalPrice(),
+                        menu.getOrderMenuOptions().stream()
+                                .map(option -> new OrderResponse.OrderMenuResponse.OrderMenuOptionResponse(
+                                        option.getId(), option.getOptionItem().getId(),
+                                        option.getOptionItem().getName(), option.getAdditionalPrice()
+                                )).collect(toList())
+                )).collect(toList());
+    }
+
+    @Transactional
+    public void removeCartItem(Long userId, Long orderMenuId) {
+        Order order = getOrderInCart(userId);
+
+        OrderMenu orderMenu = order.getOrderMenus().stream()
+                .filter(menu -> menu.getId().equals(orderMenuId))
+                .findFirst()
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_MENU_NOT_FOUND));
+
+        order.removeOrderMenu(orderMenu);
+        orderRepository.save(order);
+    }
+
     @Scheduled(cron = "0 0 0 * * ?") // 자정에 장바구니 검사
     public void cleanupCarts() {
         List<Order> orders = orderRepository.findAll();
@@ -81,9 +112,7 @@ public class CartService {
     }
 
     private void checkCartTimeOut(Long orderId) {
-        Order order = orderRepository.findByUserIdAndOrderState(orderId, OrderState.CART)
-                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
-
+        Order order = getOrderInCart(orderId);
         Duration duration = Duration.between(order.getUpdatedAt(), LocalDateTime.now());
 
         if (24 <= duration.toHours()) {
@@ -139,4 +168,10 @@ public class CartService {
             throw new CustomException(ErrorCode.OPTION_CATEGORY_DUPLICATE);
         }
     }
+
+    private Order getOrderInCart(Long orderId) {
+        return orderRepository.findByUserIdAndOrderState(orderId, OrderState.CART)
+                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
+    }
+
 }

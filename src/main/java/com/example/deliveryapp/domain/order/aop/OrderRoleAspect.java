@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrderRoleAspect {
 
-    @Before("execution(* com.example.deliveryapp.domain.order.controller.OrderUserController.*(..)) && args(authUser, ..)")
+    @Before("execution(* com.example.deliveryapp.domain.order.controller.*UserController.*(..)) && args(authUser, ..)")
     public void checkUserRole(AuthUser authUser) {
         // USER 권한을 가진 사용자만 접근 가능
         if (!UserRole.USER.equals(authUser.getUserRole())) {

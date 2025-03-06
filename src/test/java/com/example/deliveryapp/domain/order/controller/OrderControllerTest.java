@@ -2,13 +2,11 @@ package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.order.converter.OrderConverter;
-import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
-import com.example.deliveryapp.domain.order.service.CartService;
 import com.example.deliveryapp.domain.order.service.OrderService;
 import com.example.deliveryapp.domain.store.entity.Store;
 import com.example.deliveryapp.domain.store.enums.StoreStatus;
@@ -31,7 +29,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -46,9 +45,6 @@ public class OrderControllerTest {
 
     @MockitoBean
     private OrderService orderService;
-
-    @MockitoBean
-    private CartService cartService;
 
     @Test
     void 사장님의_가게별_주문_목록_조회_성공() throws Exception {
@@ -65,8 +61,8 @@ public class OrderControllerTest {
 
         Order order = new Order(user1, store, OrderState.PENDING);
 
-        OrderMenu orderMenu = new OrderMenu(new Menu("menu1",10000L, "description", store));
-        OrderMenu orderMenu2 = new OrderMenu(new Menu("menu2",10000L, "description", store));
+        OrderMenu orderMenu = new OrderMenu(new Menu("menu1", 10000L, "description", store));
+        OrderMenu orderMenu2 = new OrderMenu(new Menu("menu2", 10000L, "description", store));
         order.addOrderMenu(orderMenu);
         order.addOrderMenu(orderMenu2);
         OrderResponse response = OrderConverter.toResponse(order);
