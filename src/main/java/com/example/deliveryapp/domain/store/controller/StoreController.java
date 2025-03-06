@@ -1,5 +1,7 @@
 package com.example.deliveryapp.domain.store.controller;
 
+import com.example.deliveryapp.domain.common.annotation.Auth;
+import com.example.deliveryapp.domain.common.dto.AuthUser;
 import com.example.deliveryapp.domain.store.dto.request.StoreSaveRequest;
 import com.example.deliveryapp.domain.store.dto.request.StoreUpdateRequest;
 import com.example.deliveryapp.domain.store.dto.response.StorePageResponse;
@@ -7,7 +9,6 @@ import com.example.deliveryapp.domain.store.dto.response.StoreResponse;
 import com.example.deliveryapp.domain.store.dto.response.StoreSaveResponse;
 import com.example.deliveryapp.domain.store.dto.response.StoreUpdateResponse;
 import com.example.deliveryapp.domain.store.service.StoreService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,15 +24,15 @@ public class StoreController {
 
     // 가게 생성
     @PostMapping("/stores")
-    public ResponseEntity<StoreSaveResponse> save(HttpServletRequest request, @RequestBody StoreSaveRequest dto
+    public ResponseEntity<StoreSaveResponse> save(@Auth AuthUser authUser, @RequestBody StoreSaveRequest dto
     ) {
-        Long userId = (Long) request.getAttribute("LOGIN_USER");
+        Long userId = authUser.getId();
         return ResponseEntity.ok(storeService.save(userId, dto));
     }
 
     // 가게 페이지 API
     @GetMapping("/page")
-    public ResponseEntity<Page<StorePageResponse>> findAllPage(@PageableDefault(size =10) Pageable pageable) {
+    public ResponseEntity<Page<StorePageResponse>> findAllPage(@PageableDefault(size = 10) Pageable pageable) {
         Page<StorePageResponse> result = storeService.findAllPage(pageable);
         return ResponseEntity.ok(result);
     }
@@ -45,21 +46,21 @@ public class StoreController {
     // 가게 수정
     @PutMapping("/stores/{storeId}")
     public ResponseEntity<StoreUpdateResponse> update(
-            HttpServletRequest request,
+            @Auth AuthUser authUser,
             @PathVariable Long storeId,
             @RequestBody StoreUpdateRequest dto
     ) {
-        Long userId = (Long) request.getAttribute("LOGIN_USER");
+        Long userId = authUser.getId();
         return ResponseEntity.ok(storeService.update(storeId, userId, dto));
     }
 
     // 가게 삭제
     @DeleteMapping("/stores/{storeId}")
     public ResponseEntity<Void> delete(
-            HttpServletRequest request,
+            @Auth AuthUser authUser,
             @PathVariable Long storeId
     ) {
-        Long userId = (Long) request.getAttribute("LOGIN_USER");
+        Long userId = authUser.getId();
         storeService.delete(storeId, userId);
         return ResponseEntity.ok().build();
     }

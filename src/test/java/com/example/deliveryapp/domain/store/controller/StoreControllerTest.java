@@ -26,7 +26,6 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -75,9 +74,15 @@ class StoreControllerTest {
         when(storeService.save(eq(userId), any(StoreSaveRequest.class))).thenReturn(response);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/stores")
-                .requestAttr("LOGIN_USER", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(storeSaveRequest)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(storeSaveRequest))
+                        .with(request -> {
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("email", "em@em.com");
+                            request.setAttribute("name", "name");
+                            request.setAttribute("userRole", "USER");
+                            return request;
+                        }))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(storeId));
     }
@@ -99,9 +104,15 @@ class StoreControllerTest {
         when(storeService.update(eq(storeId), eq(userId), any(StoreUpdateRequest.class))).thenReturn(response);
 
         mockMvc.perform(MockMvcRequestBuilders.put("/stores/{storeId}", storeId)
-                        .requestAttr("LOGIN_USER", userId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(storeUpdateRequest)))
+                        .content(objectMapper.writeValueAsString(storeUpdateRequest))
+                        .with(request -> {
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("email", "em@em.com");
+                            request.setAttribute("name", "name");
+                            request.setAttribute("userRole", "USER");
+                            return request;
+                        }))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(storeId));
     }
@@ -111,7 +122,13 @@ class StoreControllerTest {
         doNothing().when(storeService).delete(storeId, userId);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/stores/{storeId}", storeId)
-                        .requestAttr("LOGIN_USER", userId))
+                        .with(request -> {
+                            request.setAttribute("userId", userId);
+                            request.setAttribute("email", "em@em.com");
+                            request.setAttribute("name", "name");
+                            request.setAttribute("userRole", "USER");
+                            return request;
+                        }))
                 .andExpect(status().isOk());
     }
 
