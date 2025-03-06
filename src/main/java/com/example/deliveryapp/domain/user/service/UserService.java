@@ -58,6 +58,10 @@ public class UserService {
         User user = userRepository.findByEmail(signInRequest.getEmail()).orElseThrow(
                 () -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
+        if(user.getDeletedAt()!=null) {
+            throw new CustomException(ErrorCode.EMAIL_ALREADY_DELETED);
+        }
+
         if (!passwordEncoder.matches(signInRequest.getPassword(), user.getPassword())) {
             throw new CustomException(ErrorCode.INVALID_PASSWORD);
         }
