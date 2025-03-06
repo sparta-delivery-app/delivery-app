@@ -115,18 +115,18 @@ class StoreControllerTest {
                 .andExpect(status().isOk());
     }
 
-//    @Test
-//    void findAllPage() throws Exception {
-//        Pageable pageable = PageRequest.of(0, 10);
-//        StorePageResponse storePageResponse = StorePageResponse.builder().id(storeId).name("Test Store").build();
-//        Page<StorePageResponse> page = new PageImpl<>(Collections.singletonList(storePageResponse), pageable, 1);
-//
-//        when(storeService.findAllPage(any(Pageable.class))).thenReturn(page);
-//
-//        mockMvc.perform(MockMvcRequestBuilders.get("/page"))
-//                .andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].id").value(storeId))
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value("Test Store"));
-//    }
+    @Test
+    void findAllPage() throws Exception {
+        Pageable pageable = PageRequest.of(0, 10);
+        StorePageResponse storePageResponse = StorePageResponse.builder().id(storeId).name("Test Store").build();
+        Page<StorePageResponse> page = new PageImpl<>(Collections.singletonList(storePageResponse), pageable, 1);
+
+        when(storeService.findAllPage(any(Pageable.class))).thenReturn(page);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/page"))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].id").value(storeId))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.content[0].name").value("Test Store"));
+    }
 
 }
