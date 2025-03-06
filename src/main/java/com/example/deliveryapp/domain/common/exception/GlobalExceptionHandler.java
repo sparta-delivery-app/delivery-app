@@ -1,8 +1,10 @@
 package com.example.deliveryapp.domain.common.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,6 +19,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -24,6 +27,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
         ErrorResponse body = ErrorResponse.of(ex.getErrorCode());
         return new ResponseEntity<>(body, ex.getHttpStatus());
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        log.error("[서버 오류 발생] ", ex);
+        ErrorResponse body = ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override

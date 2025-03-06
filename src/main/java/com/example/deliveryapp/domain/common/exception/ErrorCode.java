@@ -11,6 +11,7 @@ public enum ErrorCode {
     // COMMON
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "COMMON001", "유효하지 않은 요청 값입니다"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON002", "이 엔드포인트에서는 해당 HTTP 메서드를 지원하지 않습니다"),
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON003", "서버 내부 오류가 발생했습니다"),
 
     // TOKEN
     INVALID_SIGNATURE(HttpStatus.UNAUTHORIZED, "TOKEN001", "유효하지 않는 JWT 서명입니다."),
