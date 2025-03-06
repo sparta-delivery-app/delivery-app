@@ -41,7 +41,7 @@ public class UserControllerTest {
     @Test
     void 회원가입_성공() throws Exception {
 
-        SignUpRequest signUpRequest = new SignUpRequest("em@em.com", "pw", "name", "OWNER");
+        SignUpRequest signUpRequest = new SignUpRequest("em@em.com", "Password1!", "name", "OWNER");
         SignUpResponse signUpResponse = new SignUpResponse("bearerToken");
 
         given(userService.signUp(any(SignUpRequest.class))).willReturn(signUpResponse);
