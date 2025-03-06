@@ -30,7 +30,7 @@ public class OrderLoggingAspect {
     // 주문 생성 메서드
     @AfterReturning(value = "createOrderMethod()", returning = "orderResponse")
     public void logCreateOrderAction(OrderResponse orderResponse) {
-        logOrderAction("createOrder(주문 생성)", orderResponse.getStoreId(), orderResponse.getId());
+        logOrderAction("createOrder(주문 생성)", orderResponse.getStoreId(), orderResponse.getOrderId());
     }
 
     // 주문 상태 변경 메서드

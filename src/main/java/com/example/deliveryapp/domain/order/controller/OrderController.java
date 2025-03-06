@@ -2,6 +2,7 @@ package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.common.annotation.Auth;
 import com.example.deliveryapp.domain.common.dto.AuthUser;
+import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.service.CartService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// TODO: 사용자 권한(OWNER/USER) 검증 필요
 @RestController
 @RequiredArgsConstructor
 public class OrderController {
@@ -23,16 +25,16 @@ public class OrderController {
 
     // 전체 주문
     @PostMapping("/orders")
-    public ResponseEntity<OrderResponse> createOrder(
-            @Auth AuthUser authUser) {
+    public ResponseEntity<OrderResponse> createOrder(@Auth AuthUser authUser) {
         return ResponseEntity.ok(orderService.createOrder(authUser.getId()));
     }
 
-    // 장바구니 추가
-    @PostMapping("/menus/{menuId}/orders")
+    @PostMapping("/carts")
     public ResponseEntity<Void> addCart(
-            @Auth AuthUser authUser, @PathVariable Long menuId) {
-        cartService.addCart(authUser.getId(), menuId);
+            @Auth AuthUser authUser,
+            @RequestBody @Valid CartAddRequest cartAddRequest
+    ) {
+        cartService.addCart(authUser.getId(), cartAddRequest);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -42,8 +44,8 @@ public class OrderController {
     }
 
     @GetMapping("/stores/{storeId}/orders")
-    public List<OrderResponse> getStoreOrders(@PathVariable Long storeId, @Auth AuthUser authUser) {
-        return orderService.getOrdersByStoreId(storeId, authUser.getId());
+    public List<OrderResponse> getStoreOrders(@Auth AuthUser authUser, @PathVariable Long storeId) {
+        return orderService.getOrdersByStoreId(authUser.getId(), storeId);
     }
 
     @PatchMapping("/orders/{orderId}")

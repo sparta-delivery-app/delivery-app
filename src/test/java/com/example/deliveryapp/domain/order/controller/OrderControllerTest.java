@@ -2,7 +2,6 @@ package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
-import com.example.deliveryapp.domain.order.dto.response.OrderMenuResponse;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
