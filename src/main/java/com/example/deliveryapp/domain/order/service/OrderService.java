@@ -9,6 +9,7 @@ import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import com.example.deliveryapp.domain.store.entity.Store;
+import com.example.deliveryapp.domain.store.enums.StoreStatus;
 import com.example.deliveryapp.domain.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,10 @@ public class OrderService {
                 .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
 
         Store store = order.getStore();
+
+        if (store.getStatus() == StoreStatus.PERMANENTLY_CLOSED) {
+            throw new CustomException(ErrorCode.STORE_ALREADY_CLOSED); // 폐업 상태 예외 처리
+        }
 
         LocalTime nowTime = LocalTime.now();
         LocalTime openTime = store.getOpenTime();
