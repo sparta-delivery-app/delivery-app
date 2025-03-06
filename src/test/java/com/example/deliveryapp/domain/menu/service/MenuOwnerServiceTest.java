@@ -39,7 +39,6 @@ class MenuOwnerServiceTest {
     @InjectMocks
     private MenuOwnerService menuOwnerService;
 
-
     @Nested
     @Order(1)
     @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
