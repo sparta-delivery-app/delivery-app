@@ -111,7 +111,8 @@ public class StoreService {
         Store findStore = storeRepository.findById(storeId)
                 .orElseThrow(() -> new CustomException(ErrorCode.STORE_NOT_FOUND));
 
-        User findUser = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+        User findUser = userRepository.findById(userId).
+                orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         if (!userId.equals(findStore.getUser().getId())) {
             throw new CustomException(ErrorCode.INVALID_USER_UPDATE_STORE);
@@ -120,6 +121,7 @@ public class StoreService {
         if (dto.getStatus() != null && dto.getStatus().equals(StoreStatus.PERMANENTLY_CLOSED.name())) {
             throw new CustomException(ErrorCode.STORE_STATUS_CANNOT_BE_CHANGED_TO_CLOSED);
         }
+
         LocalTime openTime = LocalTime.parse(dto.getOpenTime(), FORMATTER);
         LocalTime closeTime = LocalTime.parse(dto.getCloseTime(), FORMATTER);
         StoreStatus status = StoreStatus.valueOf(dto.getStatus());

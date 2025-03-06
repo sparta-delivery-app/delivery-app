@@ -24,6 +24,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -61,57 +63,7 @@ class StoreServiceTest {
     @InjectMocks
     private StoreService storeService;
 
-
-    @Test
-    void 가게_수정_중_가게를_찾지_못해_에러가_발생한다() {
-        // given
-        long storeId = 1L;
-        long userId = 1L;
-        StoreUpdateRequest request = new StoreUpdateRequest("가게1", "10:00", "20:00", 1000L, "OPEN");
-        given(storeRepository.findById(storeId)).willReturn(Optional.empty());
-
-        // when
-        CustomException exception = assertThrows(CustomException.class, () -> storeService.update(storeId, userId, request));
-
-        // then
-        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
-    }
-
-    @Test
-    void 가게_삭제_중_가게를_찾지_못해_에러가_발생한다() {
-        // given
-        long storeId = 1L;
-        long userId = 1L;
-        given(storeRepository.findById(storeId)).willReturn(Optional.empty());
-
-        // when
-        CustomException exception = assertThrows(CustomException.class, () -> storeService.delete(storeId, userId));
-
-        // then
-        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
-    }
-
-    @Test
-    void 가게_등록_중_사장을_찾지_못해_에러가_발생한다() {
-        // given
-        long userId = 1L;
-        StoreSaveRequest request = new StoreSaveRequest(
-                "가게 이름",
-                "10:00",
-                "20:00",
-                10000L,
-                "OPEN"
-        );
-        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
-
-        // when
-        CustomException exception = assertThrows(CustomException.class, () -> {
-            storeService.save(userId, request);
-        });
-
-        // then
-        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
-    }
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @Test
     void 가게를_정상적으로_등록한다() {
@@ -147,6 +99,28 @@ class StoreServiceTest {
     }
 
     @Test
+    void 가게_등록_중_사장을_찾지_못해_에러가_발생한다() {
+        // given
+        long userId = 1L;
+        StoreSaveRequest request = new StoreSaveRequest(
+                "가게 이름",
+                "10:00",
+                "20:00",
+                10000L,
+                "OPEN"
+        );
+        given(userRepository.findById(anyLong())).willReturn(Optional.empty());
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> {
+            storeService.save(userId, request);
+        });
+
+        // then
+        assertEquals(ErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
     void 가게_단건_조회_중_가게를_찾지_못해_에러가_발생한다() {
         // given
         long storeId = 1L;
@@ -159,6 +133,142 @@ class StoreServiceTest {
 
         // then
         assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_수정_중_가게를_찾지_못해_에러가_발생한다() {
+        // given
+        long storeId = 1L;
+        long userId = 1L;
+        StoreUpdateRequest request = new StoreUpdateRequest("가게1", "10:00", "20:00", 1000L, "OPEN");
+        given(storeRepository.findById(storeId)).willReturn(Optional.empty());
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.update(storeId, userId, request));
+
+        // then
+        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_수정_중_사장_ID가_다른_경우_에러가_발생한다() {
+        // given
+        long storeId = 1L;
+        long userId = 1L;
+        long otherUserId = 2L;
+        StoreUpdateRequest request = new StoreUpdateRequest("가게1", "10:00", "20:00", 1000L, "OPEN");
+        User user = User.builder()
+                .email("email")
+                .password("password")
+                .name("name")
+                .role(UserRole.OWNER)
+                .build();
+
+        User otherUser = User.builder()
+                .email("otherEmail")
+                .password("otherPassword")
+                .name("otherName")
+                .role(UserRole.OWNER)
+                .build();
+
+        Store store = new Store("가게1", LocalTime.of(10, 0), LocalTime.of(20, 0), 100L, StoreStatus.OPEN, user);
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+        given(userRepository.findById(otherUserId)).willReturn(Optional.of(otherUser));
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.update(storeId, otherUserId, request));
+
+        // then
+        assertEquals(ErrorCode.INVALID_USER_UPDATE_STORE, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_수정_중_상태를_폐업으로_변하려는_경우_에러가_발생한다() {
+        //given
+        long storeId = 1L;
+        long userId = 1L;
+        StoreUpdateRequest request = new StoreUpdateRequest("가게1", "10:00", "20:00", 1000L, "PERMANENTLY_CLOSED");
+        User user = User.builder()
+                .email("email")
+                .password("password")
+                .name("name")
+                .role(UserRole.OWNER)
+                .build();
+        ReflectionTestUtils.setField(user, "id", userId);
+
+        Store store = new Store("가게1", LocalTime.of(10, 0), LocalTime.of(20, 0), 100L, StoreStatus.OPEN, user);
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.update(storeId, userId, request));
+
+        // then
+        assertEquals(ErrorCode.STORE_STATUS_CANNOT_BE_CHANGED_TO_CLOSED, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_수정_중_상태를_영업_종료로_변경하려는_경우_성공한다() {
+        //given
+        long storeId = 1L;
+        long userId = 1L;
+        StoreUpdateRequest request = new StoreUpdateRequest("가게1", "10:00", "20:00", 1000L, "CLOSED_BY_TIME");
+        User user = User.builder()
+                .email("email")
+                .password("password")
+                .name("name")
+                .role(UserRole.OWNER)
+                .build();
+        ReflectionTestUtils.setField(user, "id", userId);
+
+        Store store = new Store("가게1", LocalTime.of(10, 0), LocalTime.of(20, 0), 100L, StoreStatus.OPEN, user);
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        // when
+        storeService.update(storeId, userId, request);
+
+        // then
+        verify(storeRepository).findById(storeId);
+        verify(userRepository).findById(userId);
+
+        assertEquals(StoreStatus.CLOSED_BY_TIME, store.getStatus());
+    }
+
+    @Test
+    void 가게_삭제_중_가게를_찾지_못해_에러가_발생한다() {
+        // given
+        long storeId = 1L;
+        long userId = 1L;
+        given(storeRepository.findById(storeId)).willReturn(Optional.empty());
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.delete(storeId, userId));
+
+        // then
+        assertEquals(ErrorCode.STORE_NOT_FOUND, exception.getErrorCode());
+    }
+
+    @Test
+    void 가게_삭제_중_사장_ID가_다른_경우_에러가_발생한다() {
+        // given
+        long storeId = 1L;
+        long userId = 1L;
+        long otherUserId = 2L;
+        User user = User.builder()
+                .email("email")
+                .password("password")
+                .name("name")
+                .role(UserRole.OWNER)
+                .build();
+        Store store = new Store("가게1", LocalTime.of(10, 0), LocalTime.of(20, 0), 10000L, StoreStatus.OPEN, user);
+        given(storeRepository.findById(storeId)).willReturn(Optional.of(store));
+
+        // when
+        CustomException exception = assertThrows(CustomException.class, () -> storeService.delete(storeId, otherUserId));
+
+        // then
+        assertEquals(ErrorCode.INVALID_USER_DELETE_STORE, exception.getErrorCode());
     }
 
 //    @Test
