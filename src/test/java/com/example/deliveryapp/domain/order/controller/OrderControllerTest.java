@@ -1,6 +1,8 @@
 package com.example.deliveryapp.domain.order.controller;
 
 import com.example.deliveryapp.domain.menu.entity.Menu;
+import com.example.deliveryapp.domain.order.converter.OrderConverter;
+import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
@@ -59,13 +61,14 @@ public class OrderControllerTest {
         String bearerToken = "bearerToken";
 
         Order order = new Order(user, store, OrderState.CART);
-        OrderMenu orderMenu = new OrderMenu(order, 1L, "name1",1000L);
+        OrderMenu orderMenu = new OrderMenu(new Menu("name1", 1000L, "description", store));
         ReflectionTestUtils.setField(orderMenu, "id", 1L);
-        OrderMenu orderMenu1 = new OrderMenu(order, 1L, "name2",200L);
+        OrderMenu orderMenu1 = new OrderMenu(new Menu("name2", 200L, "description", store));
         ReflectionTestUtils.setField(orderMenu1, "id", 2L);
-        List<OrderMenuResponse> orderMenus = List.of(new OrderMenuResponse(orderMenu), new OrderMenuResponse(orderMenu1));
+        order.addOrderMenu(orderMenu);
+        order.addOrderMenu(orderMenu1);
 
-        OrderResponse orderResponse = new OrderResponse(order, orderMenus);
+        OrderResponse orderResponse = OrderConverter.toResponse(order);
 
         given(orderService.createOrder(anyLong())).willReturn(orderResponse);
 
@@ -85,22 +88,17 @@ public class OrderControllerTest {
     @Test
     void 장바구니_추가_성공() throws Exception {
         long userId = 1L;
-        long storeId = 1L;
         long menuId = 1L;
 
         String bearerToken = "bearerToken";
 
-        User user = new User("em@em.com", "pw", "name", UserRole.USER);
-        Store store = new Store(
-                "name", LocalTime.of(0, 0), LocalTime.of(23, 59),
-                1000L, StoreStatus.OPEN, user);
-        Menu menu = new Menu("name",1000L, "description", store);
+        CartAddRequest cartAddRequest = new CartAddRequest(menuId, null);
+        doNothing().when(cartService).addCart(userId,cartAddRequest);
 
-        doNothing().when(cartService).addCart(userId,menuId);
-
-        mockMvc.perform(post("/menus/{menuId}/orders",menuId)
+        mockMvc.perform(post("/carts",menuId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
                         .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(cartAddRequest))
                         .with(request -> {
                             request.setAttribute("userId", userId);
                             request.setAttribute("email", "em@em.com");
@@ -123,12 +121,13 @@ public class OrderControllerTest {
 
         Order order = new Order(user, store, OrderState.PENDING);
 
-        OrderMenu orderMenu = new OrderMenu(order, 1L, "menu1", 10000L);
-        OrderMenu orderMenu2 = new OrderMenu(order, 2L, "menu2", 10000L);
-        List<OrderMenuResponse> menuResponseList = List.of(
-                new OrderMenuResponse(orderMenu),new OrderMenuResponse(orderMenu2));
+        OrderMenu orderMenu = new OrderMenu(new Menu("menu1",10000L, "description", store));
+        OrderMenu orderMenu2 = new OrderMenu(new Menu("menu2",10000L, "description", store));
+        order.addOrderMenu(orderMenu);
+        order.addOrderMenu(orderMenu2);
+        OrderResponse response = OrderConverter.toResponse(order);
 
-        List<OrderResponse> orderList = List.of(new OrderResponse(order, menuResponseList));
+        List<OrderResponse> orderList = List.of(response);
 
         given(orderService.getOrdersByUserId(anyLong())).willReturn(orderList);
 
@@ -150,8 +149,6 @@ public class OrderControllerTest {
     void 사장님의_가게별_주문_목록_조회_성공() throws Exception {
         Long userId = 1L;
         User user1 = new User("em@em.com", "pw", "name", UserRole.OWNER);
-        User user2 = new User("em2@em.com", "pw", "name2", UserRole.USER);
-        User user3 = new User("em3@em.com", "pw", "name3", UserRole.USER);
 
         Long storeId = 1L;
         Store store = new Store(
@@ -162,15 +159,14 @@ public class OrderControllerTest {
         String bearerToken = "bearerToken";
 
         Order order = new Order(user1, store, OrderState.PENDING);
-        Order order2 = new Order(user2, store, OrderState.PENDING);
-        Order order3 = new Order(user3, store, OrderState.PENDING);
 
-        OrderMenu orderMenu = new OrderMenu(order, 1L, "menu1", 10000L);
-        OrderMenu orderMenu2 = new OrderMenu(order, 2L, "menu2", 10000L);
-        List<OrderMenuResponse> menuResponseList = List.of(
-                new OrderMenuResponse(orderMenu),new OrderMenuResponse(orderMenu2));
+        OrderMenu orderMenu = new OrderMenu(new Menu("menu1",10000L, "description", store));
+        OrderMenu orderMenu2 = new OrderMenu(new Menu("menu2",10000L, "description", store));
+        order.addOrderMenu(orderMenu);
+        order.addOrderMenu(orderMenu2);
+        OrderResponse response = OrderConverter.toResponse(order);
 
-        List<OrderResponse> orderList = List.of(new OrderResponse(order, menuResponseList));
+        List<OrderResponse> orderList = List.of(response);
 
         given(orderService.getOrdersByStoreId(anyLong(), anyLong())).willReturn(orderList);
 
