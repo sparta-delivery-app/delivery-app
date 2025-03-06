@@ -247,7 +247,7 @@ public class OrderServiceTest {
             given(storeRepository.findById(anyLong())).willReturn(Optional.empty());
 
             assertThrows(CustomException.class,
-                    () -> orderService.getOrdersByStoreId(storeId, userId), "가게를 찾을 수 없습니다");
+                    () -> orderService.getOrdersByStoreId(userId, storeId), "가게를 찾을 수 없습니다");
         }
 
         @Test
@@ -269,7 +269,7 @@ public class OrderServiceTest {
             given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
 
             assertThrows(CustomException.class,
-                    () -> orderService.getOrdersByStoreId(storeId, userId), "올바르지 않은 사용자 권한입니다");
+                    () -> orderService.getOrdersByStoreId(userId, storeId), "올바르지 않은 사용자 권한입니다");
         }
 
         @Test
@@ -299,7 +299,7 @@ public class OrderServiceTest {
             given(storeRepository.findById(anyLong())).willReturn(Optional.of(store));
             given(orderRepository.findOrdersByStoreId(anyLong())).willReturn(orderList);
 
-            List<OrderResponse> list = orderService.getOrdersByStoreId(storeId, userId);
+            List<OrderResponse> list = orderService.getOrdersByStoreId(userId, storeId);
 
             assertNotNull(list);
             OrderResponse orderResponse = list.get(0);

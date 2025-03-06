@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface OptionCategoryRepository extends JpaRepository<OptionCategory, Long> {
@@ -22,4 +23,6 @@ public interface OptionCategoryRepository extends JpaRepository<OptionCategory, 
 
     @EntityGraph(attributePaths = "optionItems")
     Page<OptionCategory> findAllByMenuId(Long menuId, Pageable pageable);
+
+    List<OptionCategory> findAllByMenuId(Long menuId);
 }

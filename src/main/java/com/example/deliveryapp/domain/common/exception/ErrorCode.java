@@ -53,6 +53,16 @@ public enum ErrorCode {
     INVALID_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "FILE002", "이미지 파일만 업로드할 수 있습니다"),
     FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "FILE003", "파일 업로드에 실패하였습니다"),
 
+    // CART
+    OPTION_CATEGORY_DUPLICATE(HttpStatus.BAD_REQUEST, "CART001", "중복된 옵션 카테고리 ID가 요청되었습니다"),
+    INVALID_OPTION_CATEGORY_COUNT(HttpStatus.BAD_REQUEST, "CART002", "선택한 메뉴의 옵션 카테고리 수와 요청된 옵션 카테고리 수가 일치하지 않습니다"),
+    MISSING_OPTION_CATEGORY(HttpStatus.BAD_REQUEST, "CART003", "요청하지 않은 옵션 카테고리가 존재합니다"),
+    REQUIRED_OPTION_NOT_SELECTED(HttpStatus.BAD_REQUEST, "CART004", "필수 옵션 항목을 선택하지 않았습니다"),
+    INVALID_MULTIPLE_SELECTION(HttpStatus.BAD_REQUEST, "CART005", "다중 선택이 불가능한 옵션에서 다중 옵션을 선택했습니다"),
+    EXCEEDS_MAX_OPTION_SELECTION(HttpStatus.BAD_REQUEST, "CART006", "최대 선택 가능 수를 초과하여 옵션을 선택했습니다"),
+    INVALID_OPTION_ITEM(HttpStatus.BAD_REQUEST, "CART007", "선택한 옵션 항목이 해당 옵션 카테고리에 존재하지 않습니다"),
+    CART_NOT_FOUND(HttpStatus.NOT_FOUND, "CART008", "장바구니가 비었습니다"),
+
     // ORDER
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORDER001", "주문 정보를 찾을 수 없습니다"),
     ORDER_CANNOT_BE_ACCEPTED(HttpStatus.BAD_REQUEST, "ORDER002", "대기 중인 주문만 수락할 수 있습니다"),

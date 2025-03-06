@@ -2,8 +2,8 @@ package com.example.deliveryapp.domain.order.service;
 
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
+import com.example.deliveryapp.domain.order.converter.OrderConverter;
 import com.example.deliveryapp.domain.order.dto.request.OrderStateUpdateRequest;
-import com.example.deliveryapp.domain.order.dto.response.OrderMenuResponse;
 import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.enums.OrderState;
@@ -18,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalTime;
 import java.util.List;
 
-import static java.util.stream.Collectors.toList;
-
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -27,73 +25,35 @@ public class OrderService {
     private final StoreRepository storeRepository;
     private final OrderRepository orderRepository;
 
+    // TODO: 메뉴나 메뉴 항목 존재하지 않을 때 예외 처리 추가
     @Transactional
     public OrderResponse createOrder(Long userId) {
         Order order = orderRepository.findByUserIdAndOrderState(userId, OrderState.CART)
-                .orElseThrow(() -> new CustomException(ErrorCode.ORDER_NOT_FOUND));
-
-        Store store = order.getStore();
-
-        if (store.getStatus() == StoreStatus.PERMANENTLY_CLOSED) {
-            throw new CustomException(ErrorCode.STORE_ALREADY_CLOSED); // 폐업 상태 예외 처리
-        }
-
-        LocalTime nowTime = LocalTime.now();
-        LocalTime openTime = store.getOpenTime();
-        LocalTime closeTime = store.getCloseTime();
-
-        boolean isClosedToday = nowTime.isBefore(openTime) || nowTime.isAfter(closeTime);
-
-        if (isClosedToday) {
-            throw new CustomException(ErrorCode.ORDER_CLOSED);
-        }
-
-        if (order.calculateTotalPrice() < store.getMinimumOrderPrice()) {
-            throw new CustomException(ErrorCode.ORDER_TOO_CHEAP);
-        }
+                .orElseThrow(() -> new CustomException(ErrorCode.CART_NOT_FOUND));
+        validateOrderAvailability(order);
 
         order.setOrderState(OrderState.PENDING);
 
-        List<OrderMenuResponse> orderMenus = order.getOrderMenus().stream()
-                .map(menu -> new OrderMenuResponse(menu.getMenuId(), menu.getName(), menu.getPrice()))
-                .collect(toList());
-
-        orderRepository.save(order);
-
-        return new OrderResponse(order, orderMenus);
+        return OrderConverter.toResponse(order);
     }
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrdersByUserId(Long userId) {
-        List<Order> orderList = orderRepository.findOrdersByUserId(userId);
-
-        return orderList.stream()
-                .map(order -> {
-                    List<OrderMenuResponse> orderMenus = order.getOrderMenus().stream()
-                            .map(menu -> new OrderMenuResponse(menu.getMenuId(), menu.getName(), menu.getPrice()))
-                            .toList();
-                    return new OrderResponse(order, orderMenus);
-                }).collect(toList());
+        return orderRepository.findOrdersByUserId(userId).stream()
+                .filter(order -> !order.getOrderState().equals(OrderState.CART))
+                .map(OrderConverter::toResponse)
+                .toList();
     }
 
     @Transactional
-    public List<OrderResponse> getOrdersByStoreId(Long storeId, Long userId) {
-        Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new CustomException(ErrorCode.STORE_NOT_FOUND));
+    public List<OrderResponse> getOrdersByStoreId(Long userId, Long storeId) {
+        Store store = storeRepository.findActiveStoreByIdOrThrow(storeId);
+        validateStoreOwner(userId, store.getUser().getId());
 
-        // 해당 가게 사장이 아닌 경우
-        if (!userId.equals(store.getUser().getId())) {
-            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
-        }
-
-        List<Order> orderList = orderRepository.findOrdersByStoreId(storeId);
-        return orderList.stream()
-                .map(order -> {
-                    List<OrderMenuResponse> orderMenus = order.getOrderMenus().stream()
-                            .map(menu -> new OrderMenuResponse(menu.getMenuId(), menu.getName(), menu.getPrice()))
-                            .toList();
-                    return new OrderResponse(order, orderMenus);
-                }).collect(toList());
+        return orderRepository.findOrdersByStoreId(storeId).stream()
+                .filter(order -> !order.getOrderState().equals(OrderState.CART))
+                .map(OrderConverter::toResponse)
+                .toList();
     }
 
     @Transactional
@@ -126,6 +86,28 @@ public class OrderService {
                 validateCompleteDelivery(userId, order, storeOwnerId);
                 order.setOrderState(OrderState.COMPLETED);
                 break;
+        }
+    }
+
+    private static void validateOrderAvailability(Order order) {
+        Store store = order.getStore();
+        if (store.getStatus() == StoreStatus.PERMANENTLY_CLOSED) {
+            throw new CustomException(ErrorCode.STORE_ALREADY_CLOSED); // 폐업 상태 예외 처리
+        }
+
+        LocalTime now = LocalTime.now();
+        if (now.isBefore(store.getOpenTime()) || now.isAfter(store.getCloseTime())) {
+            throw new CustomException(ErrorCode.ORDER_CLOSED);
+        }
+
+        if (order.calculateTotalPrice() < store.getMinimumOrderPrice()) {
+            throw new CustomException(ErrorCode.ORDER_TOO_CHEAP);
+        }
+    }
+
+    private static void validateStoreOwner(Long userId, Long storeOwnerId) {
+        if (!userId.equals(storeOwnerId)) {
+            throw new CustomException(ErrorCode.INVALID_USER_ROLE);
         }
     }
 

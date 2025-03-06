@@ -12,7 +12,6 @@ import java.util.List;
 
 @Entity
 @Getter
-@Setter
 @Table(name = "orders")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends Timestamped {
@@ -25,13 +24,15 @@ public class Order extends Timestamped {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
     private Store store;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderState orderState = OrderState.CART;
+    private OrderState orderState;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderMenu> orderMenus = new ArrayList<>();
@@ -48,9 +49,13 @@ public class Order extends Timestamped {
         orderMenu.setOrder(this);
     }
 
+    public void clearOrderMenus() {
+        orderMenus.clear();
+    }
+
     public long calculateTotalPrice() {
         return orderMenus.stream()
-                .mapToLong(OrderMenu::getPrice)
+                .mapToLong(OrderMenu::getTotalPrice)
                 .sum();
     }
 }
