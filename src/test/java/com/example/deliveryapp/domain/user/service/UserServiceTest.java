@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -102,6 +103,19 @@ public class UserServiceTest {
             given(userRepository.findByEmail(anyString())).willReturn(Optional.empty());
 
             assertThrows(CustomException.class, () -> userService.signIn(signInRequest), "사용자를 찾을 수 없습니다");
+        }
+
+        @Test
+        void 이미_탈퇴한_계정일시_예외_발생() {
+            long userId = 1L;
+            User user = new User("email@email.com", "password", "name", UserRole.OWNER);
+            SignInRequest signInRequest = new SignInRequest("email@email.com", "password");
+            ReflectionTestUtils.setField(user, "id", userId);
+            user.setDeletedAt(LocalDateTime.now());
+
+            given(userRepository.findByEmail(anyString())).willReturn(Optional.of(user));
+
+            assertThrows(CustomException.class, () -> userService.signIn(signInRequest), "이미 탈퇴한 이메일입니다");
         }
 
         @Test
