@@ -49,4 +49,15 @@ public class OptionCategory {
         this.optionItems.add(optionItem);
         optionItem.setOptionCategory(this);
     }
+
+    public void update(String name, Boolean isRequired, Boolean isMultiple, Integer maxOptions) {
+        this.name = name;
+        this.isRequired = isRequired;
+        this.isMultiple = isMultiple;
+        this.maxOptions = maxOptions;
+    }
+
+    public void clearOptionItems() {
+        this.optionItems.clear();
+    }
 }

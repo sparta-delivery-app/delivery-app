@@ -9,6 +9,7 @@ import com.example.deliveryapp.domain.menu.entity.Menu;
 import com.example.deliveryapp.domain.menu.entity.OptionCategory;
 import com.example.deliveryapp.domain.menu.repository.MenuRepository;
 import com.example.deliveryapp.domain.menu.repository.OptionCategoryRepository;
+import com.example.deliveryapp.domain.menu.repository.OptionItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ public class MenuOptionOwnerService {
 
     private final MenuRepository menuRepository;
     private final OptionCategoryRepository optionCategoryRepository;
+    private final OptionItemRepository optionItemRepository;
 
     public OptionCategoryResponse saveMenuOption(Long userId, Long menuId, OptionCategoryRequest request) {
         validateMenuOwner(userId, menuId);
@@ -33,17 +35,19 @@ public class MenuOptionOwnerService {
 
     public OptionCategoryResponse updateMenuOption(Long userId, Long menuId, Long optionCategoryId, OptionCategoryRequest request) {
         validateMenuOwner(userId, menuId);
-        Menu menu = menuRepository.findActiveMenuByIdOrThrow(menuId);
 
-        // 기존 OptionCategory 삭제
+        // 기존 OptionItem 삭제
         OptionCategory optionCategory = optionCategoryRepository.findByIdAndMenuIdOrThrow(optionCategoryId, menuId);
-        optionCategoryRepository.delete(optionCategory);
+        optionCategory.update(request.getOptionCategoryName(), request.getIsRequired(), request.getIsMultiple(), request.getMaxOptions());
+        optionCategory.clearOptionItems();
 
-        // 새로운 OptionCategory 저장
-        OptionCategory newOptionCategory = OptionCategoryConverter.toEntity(request, menu);
-        optionCategoryRepository.save(newOptionCategory);
+        // 새로운 OptionItem 저장
+        request.getOptionItems()
+                .stream().map(OptionCategoryConverter::toEntity)
+                .forEach(optionCategory::addOptionItem);
+        optionItemRepository.saveAll(optionCategory.getOptionItems());
 
-        return OptionCategoryConverter.toResponse(newOptionCategory);
+        return OptionCategoryConverter.toResponse(optionCategory);
     }
 
     public void deleteMenuOption(Long userId, Long menuId, Long optionCategoryId) {
