@@ -41,8 +41,10 @@ public class Review extends Timestamped {
     }
 
     public void setContent(String content) {
+        this.content = content;
     }
 
     public void setRating(Integer rating) {
+        this.rating = rating;
     }
 }
