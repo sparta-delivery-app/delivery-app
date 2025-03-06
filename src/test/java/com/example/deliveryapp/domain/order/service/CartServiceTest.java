@@ -8,6 +8,7 @@ import com.example.deliveryapp.domain.menu.repository.OptionCategoryRepository;
 import com.example.deliveryapp.domain.menu.repository.OptionItemRepository;
 import com.example.deliveryapp.domain.order.dto.request.CartAddRequest;
 import com.example.deliveryapp.domain.order.dto.request.CartAddRequest.OptionRequest;
+import com.example.deliveryapp.domain.order.dto.response.OrderResponse;
 import com.example.deliveryapp.domain.order.entity.Order;
 import com.example.deliveryapp.domain.order.entity.OrderMenu;
 import com.example.deliveryapp.domain.order.enums.OrderState;
@@ -32,8 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
@@ -147,7 +147,63 @@ public class CartServiceTest {
     }
 
     @Test
-    void testCleanupCartsWhenOrdersExist() {
+    void 장바구니_내역_조회() {
+        Long userId1 = 1L;
+        User user1 = new User("em@em.com", "pw", "name", UserRole.USER);
+        Store store1 = new Store("name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                1000L, StoreStatus.OPEN, user1);
+        Order order1 = new Order(user1, store1, OrderState.CART);
+        ReflectionTestUtils.setField(order1, "id", 1L);
+        order1.setUpdatedAt(LocalDateTime.now().minusHours(25));
+
+        OrderMenu orderMenu = new OrderMenu(new Menu("menu1", 10000L, "description", store1));
+        OrderMenu orderMenu2 = new OrderMenu(new Menu("menu2", 20000L, "description", store1));
+        order1.addOrderMenu(orderMenu);
+        order1.addOrderMenu(orderMenu2);
+
+        when(orderRepository.findByUserIdAndOrderState(user1.getId(), OrderState.CART)).thenReturn(Optional.of(order1));
+
+        List<OrderResponse.OrderMenuResponse> cartItems = cartService.getCartItems(user1.getId());
+
+        assertNotNull(cartItems);
+        assertEquals(2, cartItems.size());
+        assertEquals("menu1", cartItems.get(0).getMenuName());
+        assertEquals(10000L, cartItems.get(0).getPrice());
+        assertEquals("menu2", cartItems.get(1).getMenuName());
+        assertEquals(20000L, cartItems.get(1).getPrice());
+
+        verify(orderRepository, times(1)).findByUserIdAndOrderState(user1.getId(), OrderState.CART);
+    }
+
+    @Test
+    void 장바구니_아이템_삭제_성공() {
+        Long userId1 = 1L;
+        long menuId = 1L;
+        User user1 = new User("em@em.com", "pw", "name", UserRole.USER);
+        Store store1 = new Store("name", LocalTime.of(9, 0), LocalTime.of(22, 0),
+                1000L, StoreStatus.OPEN, user1);
+        Order order1 = new Order(user1, store1, OrderState.CART);
+        ReflectionTestUtils.setField(order1, "id", 1L);
+        order1.setUpdatedAt(LocalDateTime.now().minusHours(25));
+        Menu menu = new Menu("menu1", 10000L, "description", store1);
+        ReflectionTestUtils.setField(menu, "id", menuId);
+
+        OrderMenu orderMenu = new OrderMenu(menu);
+        ReflectionTestUtils.setField(orderMenu, "id", 1L);
+
+        order1.addOrderMenu(orderMenu);
+
+        when(orderRepository.findByUserIdAndOrderState(anyLong(), any(OrderState.class))).thenReturn(Optional.of(order1));
+
+        cartService.removeCartItem(userId1, menuId);
+
+        assertEquals(0, order1.getOrderMenus().size());
+        verify(orderRepository, times(1)).save(order1);
+    }
+
+
+    @Test
+    void 스케줄러_장바구니_검사() {
         // Given
         Long userId1 = 1L;
         User user1 = new User("em@em.com", "pw", "name", UserRole.USER);

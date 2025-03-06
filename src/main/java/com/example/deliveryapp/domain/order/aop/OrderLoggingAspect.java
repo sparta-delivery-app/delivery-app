@@ -6,7 +6,6 @@ import com.example.deliveryapp.domain.order.enums.OrderState;
 import com.example.deliveryapp.domain.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
