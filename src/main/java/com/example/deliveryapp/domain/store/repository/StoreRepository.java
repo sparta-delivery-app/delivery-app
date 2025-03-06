@@ -3,6 +3,8 @@ package com.example.deliveryapp.domain.store.repository;
 import com.example.deliveryapp.domain.common.exception.CustomException;
 import com.example.deliveryapp.domain.common.exception.ErrorCode;
 import com.example.deliveryapp.domain.store.entity.Store;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -28,5 +30,8 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     }
 
     long countByUserIdAndIsDeletedFalse(Long userId);
+
+    @Query("SELECT s FROM Store s WHERE s.status != 'PERMANENTLY_CLOSED'")
+    Page<Store> findAll(Pageable pageable);
 
 }
